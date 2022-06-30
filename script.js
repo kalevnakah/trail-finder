@@ -1,4 +1,23 @@
-let trails = [];
+var trails = [
+  {
+    title: '10.1 CSP 5/28/22 12:29:16 PM',
+    distance: 78.62647282270385,
+    total_time: 65,
+    average_speed: 1.209638043426213,
+    notes: '',
+  },
+];
+
+var Trail = function () {
+  if (!(this instanceof Node)) return new Node(name, isOkay, rotation);
+  else {
+    this.title = '';
+    this.distance = 0.0;
+    this.total_time = 0;
+    this.average_speed = 0.0;
+    this.notes = '';
+  }
+};
 
 function extractData(file) {
   const trail = {};
@@ -8,15 +27,16 @@ function extractData(file) {
       //parse the JSON
       var response = JSON.parse(xhttp.responseText);
       //Drill down to the trails properties
-      var properties = response.features[0].properties;
+      return response.features[0].properties;
+      //var properties = response.features[0].properties;
 
-      trail.title = properties.title;
-      trail.distance = properties.distance;
-      trail.total_time = properties.total_time;
-      trail.average_speed = properties.average_speed;
-      trail.notes = properties.notes;
+      // trail.title = properties.title;
+      // trail.distance = properties.distance;
+      // trail.total_time = properties.total_time;
+      // trail.average_speed = properties.average_speed;
+      // trail.notes = properties.notes;
 
-      trails = [...trails, trail];
+      // trails.push(trail);
     }
   };
   xhttp.open('GET', file, true);
@@ -27,16 +47,19 @@ function extractData(file) {
 function compileTrails(numOfFiles) {
   for (let i = 1; i <= numOfFiles; i++) {
     let file = `trails/${i}.json`;
-    extractData(file);
+    const trail = extractData(file);
   }
 }
 
-compileTrails(43);
+compileTrails(3);
+
+console.log(trails);
 
 //find the total distance and time of route
 function routeTotal(route) {
+  console.log(trails);
   console.log(route);
-  let totalDistance = route[0].distance;
+  //let totalDistance = route[0].distance;
   //let totalTime = route[0].total_time;
   //let averageSpeed = route[0].average_speed;
   // let totalDistance = 0;
@@ -51,9 +74,10 @@ function routeTotal(route) {
   //return [totalDistance, totalTime, averageSpeed];
 }
 
+//routeTotal(trails);
 //const trailTotals = routeTotal(trailsDir);
 //let distance = trails[0].title;
-console.log(trails);
+//console.log(trails);
 
 //console.log(JSON.stringify(trails[0]));
 //let trailString = ;

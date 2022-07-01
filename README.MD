@@ -10,7 +10,7 @@ The next trick was to link the trails together. I gave every trail a unique numb
 
 After collecting all the data I had the challenge of getting it from the map and the geoJson files to a combine table that could be accessed and processed by JavaScript. After doing some research I found that a geoJson and JSON file are essentially the same thing. By renaming all the files to JSON I could the use JavaScript to combine all data into one file. Alternative I could use a spreed sheet program to manipulate the data. Considering the scope of the project I am going to stick with JavaScript to do all the heavy lifting.
 
-Using AJAX I parse all the JSON files and extract the relevant data to a consolidated array of objects. When trying to iterate through the object to run calculations I ran into null error when accessing the object. This was due to the fact the object was created in a different scope that was closed before accessing the array.
+Using AJAX I parse all the JSON files and extract the relevant data to a consolidated array of objects. When trying to iterate through the object to run calculations I ran into null error when accessing the object. I suspected this was due to the fact the object was created in a different scope that was closed and deleted from memory before accessing the array. After switching my testing environment from VS Code live server to XAMPP the issue was resolved.
 
 Sudo Code
 

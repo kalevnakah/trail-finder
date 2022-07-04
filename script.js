@@ -1,6 +1,13 @@
-const btnCalc = document.getElementById('calc');
+const btnLoad = document.getElementById('load');
+const box = document.getElementById('box');
+const trailsEl = document.getElementById('trails');
+const totalDistEL = document.getElementById('total-dist');
+const totalTimeEl = document.getElementById('total-time');
+const avgSpeedEl = document.getElementById('avg-speed');
 
 const trails = [];
+
+let trailIntersects = {};
 
 async function extractData(file) {
   const res = await fetch(file);
@@ -17,35 +24,52 @@ async function compileTrails(numOfFiles) {
     trails.push(trail);
   }
 }
+
 compileTrails(43);
+
+// Update DOM with trails list
+function trailsToDom(trail) {
+  const newTrail = document.createElement('div');
+  newTrail.classList.add('trail-rows', 'trail');
+  newTrail.id = trail.id;
+  newTrail.innerHTML = `
+    <div><p>${trail.title}</p></div>
+    <div><p>${trail.distance.toFixed(2)}</p></div>
+    <div><p>${Math.floor(trail.total_time / 60)}:${
+    trail.total_time % 60
+  }</p></div>
+    <div><p>${(trail.average_speed * (18 / 5)).toFixed(2)}</p></div>
+    <div><input></input></div>
+    <div><input></input></div>
+  `;
+  trailsEl.appendChild(newTrail);
+}
 
 //find the total distance and time of route
 function routeTotal() {
   let totalDistance = 0;
   let totalTime = 0;
   let totalSpeed = 0;
+
   for (let i in trails) {
     totalDistance += trails[i].distance;
     totalTime += trails[i].total_time;
     totalSpeed += trails[i].average_speed;
+    trailsToDom(trails[i]);
   }
   let averageSpeed = totalSpeed / trails.length;
+
+  totalDistEL.innerHTML = `${totalDistance.toFixed(2)}`;
+  totalTimeEl.innerHTML = `${Math.floor(totalTime / 60)}:${totalTime % 60}`;
+  avgSpeedEl.innerHTML = `${(averageSpeed * (18 / 5)).toFixed(2)}`;
+
   console.log(totalDistance, totalTime, averageSpeed);
 }
 
 routeTotal();
-btnCalc.addEventListener('click', routeTotal);
+btnLoad.addEventListener('click', routeTotal);
 
-//routeTotal(trails);
-//const trailTotals = routeTotal(trailsDir);
-//let distance = trails[0].title;
-//console.log(trails);
-
-//console.log(JSON.stringify(trails[0]));
-//let trailString = ;
-//console.log(trails[0]);
-
-//document.getElementById('container').innerHTML = JSON.stringify(trails);
+//Create list of trail intersections
 
 // //Sudo Code
 

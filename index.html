@@ -9,8 +9,24 @@
   </head>
   <body>
     <h1>Find Optimal Trail Route</h1>
-    <button id="calc">Calculate</button>
-    <div id="container"></div>
+    <button id="load">Load Trails</button>
+    <div class="box">
+      <div id="trail-list" class="trails-list-head trail-rows">
+        <div>Name</div>
+        <div>Distance (Meters)</div>
+        <div>Time (MM:SS)</div>
+        <div>Speed (km/hr)</div>
+        <div>Trail Start</div>
+        <div>Trail End</div>
+      </div>
+      <div id="trails"></div>
+      <div id="trail-total" class="trail-total trail-rows">
+        <div>Total:</div>
+        <div id="total-dist"></div>
+        <div id="total-time" class="total-time"></div>
+        <div id="avg-speed" class="avg-speed"></div>
+      </div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>

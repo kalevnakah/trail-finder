@@ -1,9 +1,11 @@
-const btnLoad = document.getElementById('load');
+const btnLoad = document.getElementById('load-btn');
+const btnIntersects = document.getElementById('intersect-btn');
 const box = document.getElementById('box');
 const trailsEl = document.getElementById('trails');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
+let intersectEL = [];
 
 const trails = [];
 
@@ -25,7 +27,7 @@ async function compileTrails(numOfFiles) {
   }
 }
 
-compileTrails(43);
+compileTrails(5);
 
 // Update DOM with trails list
 function trailsToDom(trail) {
@@ -39,8 +41,8 @@ function trailsToDom(trail) {
     trail.total_time % 60
   }</p></div>
     <div><p>${(trail.average_speed * (18 / 5)).toFixed(2)}</p></div>
-    <div><input></input></div>
-    <div><input></input></div>
+    <div><input data-id=${trail.id} class="intersect"></input></div>
+    <div><input data-id=${trail.id} class="intersect"></input></div>
   `;
   trailsEl.appendChild(newTrail);
 }
@@ -66,10 +68,30 @@ function routeTotal() {
   console.log(totalDistance, totalTime, averageSpeed);
 }
 
+//Create list of trail intersections
+function collectIntersects() {
+  intersectEL = document.querySelectorAll('.intersect');
+  intersectEL.forEach((intersect) => {
+    const trailObj = trails.find((trail) => trail.id === intersect.dataset.id);
+    if (trailObj.intersections) {
+      trailObj.intersections.push(intersect.value);
+    } else {
+      trailObj.intersections = [intersect.value];
+    }
+
+    if (trailIntersects.hasOwnProperty(intersect.value)) {
+      trailIntersects[intersect.value].push(intersect.dataset.id);
+    } else if (intersect.value === '') {
+      return;
+    } else {
+      trailIntersects[intersect.value] = [intersect.dataset.id];
+    }
+  });
+}
+
 routeTotal();
 btnLoad.addEventListener('click', routeTotal);
-
-//Create list of trail intersections
+btnIntersects.addEventListener('click', collectIntersects);
 
 // //Sudo Code
 

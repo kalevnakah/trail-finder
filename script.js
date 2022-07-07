@@ -122,7 +122,7 @@ function traverseTrails(route, walkedTrails, intersection) {
   // Stop recursive function if all trails have been walked
   if (trailsWalked(walkedTrails)) {
     console.log(newRoute);
-    return allPossibleRoutes.push(newRoute);
+    allPossibleRoutes.push([...newRoute]);
   } else {
     //loop through every trail at current intersection
     let futureTrails = TrailIntersects[intersection];

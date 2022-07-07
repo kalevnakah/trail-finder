@@ -1,0 +1,110 @@
+loop through intersections
+  set current intersection
+    loop through trails at intersection
+      add a trail to route
+      mark trail as walked
+      update current intersection
+      check if all trails walked
+        yes = return route
+        no = loop through trails at current intersection
+
+
+{
+  trail1: 
+    {
+      trail1: 
+        {
+          trail3:
+          {
+            trail2: finished,
+            trail3: Incomplete
+          }
+        }, 
+      trail2: 
+        {
+          trail2:
+            {
+              trail1:
+                {
+                  trail3: finished,
+                  trail1: incomplete
+                }
+            },    
+          trail3: finished
+        }
+    }
+}
+
+[trail1,
+  [trail1,
+    [trail3,
+      [
+        [trail2],
+        [trail3]
+      ]
+    ]
+  ],
+  [trail2,
+    [
+      [trail2,
+        [trail1,
+          [
+            [trail3],
+            [trail1]
+          ]
+        ]
+      ],
+      [trail3]
+    ]
+  ]
+]
+traverseTrails([], buildWalkedList(trails), '1')
+  traverseTrails([trail1], {trail1 = 1}, '2')
+    traverseTrails([trail1, trail1], {trail1 = 2}, '1')
+      traverseTrails([trail1, trail1, trail3], {trail1 = 2, trail3=1}, '3')
+        traverseTrails([trail1, trail1, trail3, trail2], {trail1 = 2, trail3=1}, '2') 
+          return[trail1, trail1, trail3, trail2] 
+        traverseTrails([trail1, trail1, trail3, trail3], {trail1 = 2, trail3=2}, '1')
+          return Null ('Folded on itself')
+    traverseTrails([trail1, trail2], {trail1 = 1, trail2 = 1}, '3')
+      traverseTrails([trail1, trail2, trail2], {trail1 = 1, trail2 = 2}, '2')
+        traverseTrails([trail1, trail2, trail2, trail1], {trail1 = 2, trail2 = 2}, '1')
+          traverseTrails([trail1, trail2, trail2, trail1, trail3], {trail1 = 2, trail2 = 2, trail3 =1}, '3') 
+            return [trail1, trail2, trail2, trail1, trail3]
+      traverseTrails([trail1, trail2, trail3], {trail1 = 1, trail2 = 1, trail3 =1}, '3')
+        return [trail1, trail2, trail3]
+  traverseTrails([trail3], {trail3 = 1}, '3')
+    traverseTrails([trail3, trail3], {trail3 = 2}, '1')
+      traverseTrails([trail3, trail3, trail1], {trail3 = 2, trail1 = 1}, '2')
+        traverseTrails([trail3, trail3, trail1, trail1], {trail3 = 2, trail1 = 2}, '1')
+          return null
+        traverseTrails([trail3, trail3, trail1, trail2], {trail3 = 2, trail1 = 1, trail 2}, '3')
+          return [trail3, trail3, trail1, trail2]
+    traverseTrails([trail3, trail2], {trail3 = 1, trail2 = 1}, '2')
+      traverseTrails([trail3, trail2, trail 2], {trail3 = 1, trail2 = 2}, '3')
+        traverseTrails([trail3, trail2, trail 2, trail3], {trail3 = 3, trail2 = 2}, '1')
+          traverseTrails([trail3, trail2, trail 2, trail3, trail1], {trail3 = 3, trail2 = 2, trail1}, '2')
+            return [trail3, trail2, trail 2, trail3, trail1]
+      traverseTrails([trail3, trail2, trail 1], {trail3 = 1, trail2 = 1, trail1}, '2')
+        return [trail3, trail2, trail 1]
+
+[trail1]
+
+
+[trail1, trail1, trail3, trail2] = finished
+[trail1, trail1, trail3, trail3] = incomplete
+[trail1, trail2, trail2, trail1, trail3] = finished
+[trail1, trail2, trail3] = finished
+[trail3, trail3, trail1, trail1] = incomplete
+[trail3, trail3, trail1, trail2] = finished
+[trail3, trail2, trail 2, trail3, trail1] = finished
+[trail3, trail2, trail 1] = finished
+
+
+loop through every trail at intersection that has not been walked more than once
+  if all trails at intersection have been walked twice
+    if all trails walked
+      return the route
+  else
+    loop through all remaining not walked trails
+    

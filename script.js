@@ -7,9 +7,9 @@ const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
 let intersectEL = [];
 
-const trails = [];
+const Trails = [];
 
-let trailIntersects = {};
+let TrailIntersects = {};
 
 async function extractData(file) {
   const res = await fetch(file);
@@ -19,15 +19,13 @@ async function extractData(file) {
 }
 
 //iterate through all the files and build the new trails list
-async function compileTrails(numOfFiles) {
+async function fetchTrails(numOfFiles) {
   for (let i = 1; i <= numOfFiles; i++) {
     let file = `trails/${i}.json`;
     const trail = await extractData(file);
-    trails.push(trail);
+    Trails.push(trail);
   }
 }
-
-compileTrails(5);
 
 // Update DOM with trails list
 function trailsToDom(trail) {
@@ -38,8 +36,11 @@ function trailsToDom(trail) {
     <div><p>${trail.title}</p></div>
     <div><p>${trail.distance.toFixed(2)}</p></div>
     <div><p>${Math.floor(trail.total_time / 60)}:${
-    trail.total_time % 60
-  }</p></div>
+    trail.total_time % 60 > 9
+      ? trail.total_time % 60
+      : '0' + (trail.total_time % 60)
+  }
+    </p></div>
     <div><p>${(trail.average_speed * (18 / 5)).toFixed(2)}</p></div>
     <div><input data-id=${trail.id} class="intersect"></input></div>
     <div><input data-id=${trail.id} class="intersect"></input></div>
@@ -48,7 +49,7 @@ function trailsToDom(trail) {
 }
 
 //find the total distance and time of route
-function routeTotal() {
+function routeTotal(trails) {
   let totalDistance = 0;
   let totalTime = 0;
   let totalSpeed = 0;
@@ -64,61 +65,119 @@ function routeTotal() {
   totalDistEL.innerHTML = `${totalDistance.toFixed(2)}`;
   totalTimeEl.innerHTML = `${Math.floor(totalTime / 60)}:${totalTime % 60}`;
   avgSpeedEl.innerHTML = `${(averageSpeed * (18 / 5)).toFixed(2)}`;
-
-  console.log(totalDistance, totalTime, averageSpeed);
 }
+
+// Initialize the program and fetch the js
+(async function () {
+  await fetchTrails(3);
+  routeTotal(Trails);
+})();
 
 //Create list of trail intersections
 function collectIntersects() {
+  TrailIntersects = [];
   intersectEL = document.querySelectorAll('.intersect');
   intersectEL.forEach((intersect) => {
-    const trailObj = trails.find((trail) => trail.id === intersect.dataset.id);
+    const trailObj = Trails.find((trail) => trail.id === intersect.dataset.id);
     if (trailObj.intersections) {
       trailObj.intersections.push(intersect.value);
     } else {
       trailObj.intersections = [intersect.value];
     }
 
-    if (trailIntersects.hasOwnProperty(intersect.value)) {
-      trailIntersects[intersect.value].push(intersect.dataset.id);
+    if (TrailIntersects.hasOwnProperty(intersect.value)) {
+      TrailIntersects[intersect.value].push(intersect.dataset.id);
     } else if (intersect.value === '') {
       return;
     } else {
-      trailIntersects[intersect.value] = [intersect.dataset.id];
+      TrailIntersects[intersect.value] = [intersect.dataset.id];
     }
   });
 }
 
-routeTotal();
-btnLoad.addEventListener('click', routeTotal);
+// Build a list can keep track of the state of the trails while traversing them.
+function buildWalkedList(trails) {
+  const walkedTrails = trails.map((trail) => ({
+    id: trail.id,
+    walked: 0,
+  }));
+  return walkedTrails;
+}
+
+// Get possible routes from different starting points
+function startEveryWhere() {
+  for (const intersect in TrailIntersects) {
+    if (TrailIntersects.hasOwnProperty(intersect)) {
+      console.log(typeof intersect);
+      findAllPossibleRoutes(intersect);
+    }
+  }
+}
+
+const allPossibleRoutes = [];
+
+// Using recursion to find all trail routes
+function traverseTrails(route, walkedTrails, intersection) {
+  const newRoute = route;
+  // Stop recursive function if all trails have been walked
+  if (trailsWalked(walkedTrails)) {
+    console.log(newRoute);
+    return allPossibleRoutes.push(newRoute);
+  } else {
+    //loop through every trail at current intersection
+    let futureTrails = TrailIntersects[intersection];
+    futureTrails.forEach((newTrail) => {
+      // Stop infinite loop. Cannot walk same trail more than twice
+      if (backtrackCheck(newTrail, walkedTrails)) {
+        // add trail to newRoute
+        newRoute.push(newTrail);
+        // Grab the intersection on the other end of the trail
+        let newIntersect = findNextIntersection(intersection, newTrail);
+        // Mark the trail as walked
+        let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
+        // Call the recursive function
+        traverseTrails(newRoute, newWalkedTrails, newIntersect);
+        // Undo stuff so the for loop will work on next iteration
+        removeWalkedTrail(newTrail, walkedTrails);
+        newRoute.pop();
+      }
+    });
+  }
+}
+
+// Mark a trail as walked
+function addWalkedTrail(curTrail, walkedTrails) {
+  walkedTrails.find((trail) => trail.id === curTrail).walked += 1;
+  return walkedTrails;
+}
+
+// UnMark a trail as walked
+function removeWalkedTrail(curTrail, walkedTrails) {
+  walkedTrails.find((trail) => trail.id === curTrail).walked -= 1;
+  return walkedTrails;
+}
+
+// Find the intersection at the other end of trail
+function findNextIntersection(connector, curTrail) {
+  let trailObj = Trails.find((trail) => trail.id === curTrail);
+  let oppositeIntersect = trailObj.intersections.filter((i) => i != connector);
+  return oppositeIntersect[0];
+}
+
+// Determine if all the trails have been walked
+function trailsWalked(walkedtrails) {
+  return walkedtrails.map((trail) => trail.walked).every((trail) => trail > 0);
+}
+
+// check if trail has been walked more than once
+function backtrackCheck(curTrail, walkedTrails) {
+  let trailObj = walkedTrails.find((trail) => trail.id === curTrail);
+  return trailObj.walked < 2;
+}
+
+// Event Listeners
+btnLoad.addEventListener('click', routeTotal(Trails));
 btnIntersects.addEventListener('click', collectIntersects);
-
-// //Sudo Code
-
-// routeList = []
-// //recursively find all route patterns
-// function findRoutes(start) {
-//   route = []
-//   if filter start.trails(walked=false) does not equal null {
-//     for each trail not walked {
-//       add trail to route
-//       get newStart point
-//       findRoutes(newStart)
-//     }
-//   } else if allTrailsWalked() = false
-//     for each trail {
-//       add trail to route
-//       get newStart point
-//       findRoutes(newStart)
-//     }
-//   } else
-//   add route to routeList
-// }
-
-// //check if all trails have been walked
-// functions allTrailWalked {
-//   return trails.reduced(walked = true)
-// }
 
 // //find the total time/distance of route
 // for each route in routes
@@ -129,13 +188,3 @@ btnIntersects.addEventListener('click', collectIntersects);
 
 // //find shortest route
 // reduce.routes by total distance or time
-
-// //display shortest route
-// for each trail in shortest route
-//   update dom div
-//     trail.name
-//     trail.dist
-//     trail.tim
-// update dom div
-//   route.totalDist
-//   route.totalTime

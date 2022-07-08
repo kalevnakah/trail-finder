@@ -8,9 +8,10 @@ const avgSpeedEl = document.getElementById('avg-speed');
 let intersectEL = [];
 
 const Trails = [];
-
 let TrailIntersects = {};
+const allPossibleRoutes = [];
 
+// Extract the properties from the json files
 async function extractData(file) {
   const res = await fetch(file);
   const data = await res.json();
@@ -71,6 +72,10 @@ function routeTotal(trails) {
 (async function () {
   await fetchTrails(3);
   routeTotal(Trails);
+  giveRoutesTestingIntersections(testIntersections);
+  collectIntersects();
+  traverseTrails([], buildWalkedList(Trails), '1');
+  whichRoutesAreShortest(allPossibleRoutes);
 })();
 
 //Create list of trail intersections
@@ -114,37 +119,6 @@ function startEveryWhere() {
   }
 }
 
-const allPossibleRoutes = [];
-
-// Using recursion to find all trail routes
-function traverseTrails(route, walkedTrails, intersection) {
-  const newRoute = route;
-  // Stop recursive function if all trails have been walked
-  if (trailsWalked(walkedTrails)) {
-    console.log(newRoute);
-    allPossibleRoutes.push([...newRoute]);
-  } else {
-    //loop through every trail at current intersection
-    let futureTrails = TrailIntersects[intersection];
-    futureTrails.forEach((newTrail) => {
-      // Stop infinite loop. Cannot walk same trail more than twice
-      if (backtrackCheck(newTrail, walkedTrails)) {
-        // add trail to newRoute
-        newRoute.push(newTrail);
-        // Grab the intersection on the other end of the trail
-        let newIntersect = findNextIntersection(intersection, newTrail);
-        // Mark the trail as walked
-        let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
-        // Call the recursive function
-        traverseTrails(newRoute, newWalkedTrails, newIntersect);
-        // Undo stuff so the for loop will work on next iteration
-        removeWalkedTrail(newTrail, walkedTrails);
-        newRoute.pop();
-      }
-    });
-  }
-}
-
 // Mark a trail as walked
 function addWalkedTrail(curTrail, walkedTrails) {
   walkedTrails.find((trail) => trail.id === curTrail).walked += 1;
@@ -175,9 +149,76 @@ function backtrackCheck(curTrail, walkedTrails) {
   return trailObj.walked < 2;
 }
 
+// Using recursion to find all trail routes
+function traverseTrails(route, walkedTrails, intersection) {
+  const newRoute = route;
+  // Stop recursive function if all trails have been walked
+  if (trailsWalked(walkedTrails)) {
+    return allPossibleRoutes.push([...newRoute]);
+  } else {
+    //loop through every trail at current intersection
+    let futureTrails = TrailIntersects[intersection];
+    futureTrails.forEach((newTrail) => {
+      // Stop infinite loop. Cannot walk same trail more than twice
+      if (backtrackCheck(newTrail, walkedTrails)) {
+        // add trail to newRoute
+        newRoute.push(newTrail);
+        // Grab the intersection on the other end of the trail
+        let newIntersect = findNextIntersection(intersection, newTrail);
+        // Mark the trail as walked
+        let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
+        // Call the recursive function
+        traverseTrails(newRoute, newWalkedTrails, newIntersect);
+        // Undo stuff so the for loop will work on next iteration
+        removeWalkedTrail(newTrail, walkedTrails);
+        newRoute.pop();
+      }
+    });
+  }
+}
+
+// Determine which routes are the shortest
+function whichRoutesAreShortest(routesList) {
+  routesList.reduce((smallestRoute = [], route) => {
+    const routeLength = route.reduce((routeTotalDistance, curTrail) => {
+      let trailObj = Trails.find((trail) => trail.id === curTrail);
+      return routeTotalDistance + parseFloat(trailObj.distance);
+    }, 0);
+    console.log(`Route Length: ${routeLength}  `);
+    console.log(`Smallest Route: ${smallestRoute}  `);
+    if (smallestRoute == []) {
+      console.log('empty');
+      smallestRoute.push(routeLength);
+      console.log(`Smallest Route: ${typeof smallestRoute}  `);
+      smallestRoute.push(`{length:${routeLength}, route:${route}}`);
+    } else if (smallestRoute[0] === routeLength) {
+      console.log('equal');
+      return smallestRoute.push(`{length:${routeLength}, route:${route}}`);
+    } else if (smallestRoute[0] > routeLength) {
+      console.log('smaller');
+      smallestRoute = [];
+      smallestRoute.push(routeLength);
+      return smallestRoute.push(`{length:${routeLength}, route:${route}}`);
+    }
+    //console.log(`Smallest Route: ${smallestRoute}  `);
+  }, []);
+}
+// Returns: [{length: 10}, route:[trail, trail2, trail3]]
+
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));
 btnIntersects.addEventListener('click', collectIntersects);
+
+// Test functions
+// Fill in the intersections
+function giveRoutesTestingIntersections(intersectionList) {
+  intersectEL = document.querySelectorAll('.intersect');
+  intersectEL.forEach((intersect, index) => {
+    intersect.value = intersectionList[index];
+  });
+}
+// Controlled test data
+const testIntersections = ['1', '2', '2', '3', '3', '1'];
 
 // //find the total time/distance of route
 // for each route in routes

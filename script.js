@@ -179,31 +179,28 @@ function traverseTrails(route, walkedTrails, intersection) {
 
 // Determine which routes are the shortest
 function whichRoutesAreShortest(routesList) {
-  routesList.reduce((smallestRoute = [], route) => {
+  return routesList.reduce((smallestRoute, route) => {
+    //Add up the total length of the route
     const routeLength = route.reduce((routeTotalDistance, curTrail) => {
       let trailObj = Trails.find((trail) => trail.id === curTrail);
-      return routeTotalDistance + parseFloat(trailObj.distance);
+      // Round to two decimal to catch float errors and trails that pretty much equal.
+      return routeTotalDistance + parseFloat(trailObj.distance.toFixed(2));
     }, 0);
-    console.log(`Route Length: ${routeLength}  `);
-    console.log(`Smallest Route: ${smallestRoute}  `);
-    if (smallestRoute == []) {
-      console.log('empty');
+    // Add route to the accumulator and reset it if the route is shorter.
+    if (smallestRoute.length === 0) {
       smallestRoute.push(routeLength);
-      console.log(`Smallest Route: ${typeof smallestRoute}  `);
-      smallestRoute.push(`{length:${routeLength}, route:${route}}`);
-    } else if (smallestRoute[0] === routeLength) {
-      console.log('equal');
-      return smallestRoute.push(`{length:${routeLength}, route:${route}}`);
+      smallestRoute.push(route);
+    } else if (smallestRoute[0] == routeLength) {
+      smallestRoute.push(route);
     } else if (smallestRoute[0] > routeLength) {
-      console.log('smaller');
       smallestRoute = [];
       smallestRoute.push(routeLength);
-      return smallestRoute.push(`{length:${routeLength}, route:${route}}`);
+      smallestRoute.push(route);
     }
-    //console.log(`Smallest Route: ${smallestRoute}  `);
+    // Returns: [ Trail Length as double, [route1], [route2]]
+    return smallestRoute;
   }, []);
 }
-// Returns: [{length: 10}, route:[trail, trail2, trail3]]
 
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));

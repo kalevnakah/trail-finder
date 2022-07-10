@@ -197,9 +197,47 @@ function whichRoutesAreShortest(routesList) {
       smallestRoute.push(routeLength);
       smallestRoute.push(route);
     }
-    // Returns: [ Trail Length as double, [route1], [route2]]
+    // Returns: [ Trail Length as double, [route1], [route2], ...]
     return smallestRoute;
   }, []);
+}
+
+function filterIdenticalRoutes(arrLengthRoutes) {
+  const arrRoutes = arrLengthRoutes.shift();
+  arrRoutes.forEach((route, index, routes) => {
+    if (sameStartAndEnd(route)) {
+      return route;
+    } else {
+      return;
+    }
+  });
+}
+
+function sameStartAndEnd(route) {
+  const firstTrail = Trails.find((trail) => trail.id === route[0]);
+  const secondTrail = Trails.find((trail) => trail.id === route[1]);
+  const lastTrail = Trails.find(
+    (trail) => trail.id === route[route.length - 1]
+  );
+  const secondToLastTrail = Trails.find(
+    (trail) => trail.id === route[route.length - 2]
+  );
+  const allIntersections = [
+    ...firstTrail.intersections,
+    ...secondTrail.intersections,
+    ...lastTrail.intersection,
+    ...secondToLastTrail.intersections,
+  ];
+  for (let i = 0; i < allIntersections.length; i++) {
+    allIntersections.forEach(
+      (intersection) => intersection === allIntersections[i]
+    );
+  }
+  allIntersections.every((firstIntersection) =>
+    allIntersections.every(
+      (secondIntersection) => secondIntersection !== firstIntersection
+    )
+  );
 }
 
 // Event Listeners

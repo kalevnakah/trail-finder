@@ -206,14 +206,14 @@ function filterIdenticalRoutes(arrLengthRoutes) {
   const arrRoutes = arrLengthRoutes.shift();
   // Loop
   for (let i = 0; i < arrRoutes.length - 1; i++) {
-    // If Same length
+    // If same length
     for (let j = 0; j < arrRoutes.length; j++) {
       if (arrRoutes[i] === arrRoutes[j].length) {
-        if (startAndEndAreEqual(arrRoutes[i], arrRoutes[j])) {
-          const flippedRoute = routeFlipper(arrRoutes[j]);
-          if (compareTwoRoutes(arrRoutes[i], flippedRoute)) {
-            arrRoutes.splice(j, 1);
-          } else if (compareShifted(arrRoutes[i], arrRoutes[j])) {
+        const flippedRoute = routeFlipper(arrRoutes[j]);
+        if (compareTwoRoutes(arrRoutes[i], flippedRoute)) {
+          arrRoutes.splice(j, 1);
+        } else if (startAndEndAreEqual(arrRoutes[i], arrRoutes[j])) {
+          if (compareShifted(arrRoutes[i], arrRoutes[j])) {
             arrRoutes.splice(j, 1);
           } else if (compareShifted(arrRoutes[i], flippedRoute)) {
             arrRoutes.splice(j, 1);
@@ -259,6 +259,7 @@ function compareShifted(route1, route2) {
       return true;
     }
   }
+  return false;
 }
 
 function compareTwoRoutes(route1, route2) {

@@ -204,17 +204,22 @@ function whichRoutesAreShortest(routesList) {
 
 function filterIdenticalRoutes(arrLengthRoutes) {
   const arrRoutes = arrLengthRoutes.shift();
-  // Loop
+  // Loop through and set route 1
   for (let i = 0; i < arrRoutes.length - 1; i++) {
-    // If same length
+    // Loop through and set route 2
     for (let j = 0; j < arrRoutes.length; j++) {
+      // Routes that don't have the same number of trails are not equal
       if (arrRoutes[i] === arrRoutes[j].length) {
+        // Create and compare a flipped version of the route being compared
         const flippedRoute = routeFlipper(arrRoutes[j]);
         if (compareTwoRoutes(arrRoutes[i], flippedRoute)) {
           arrRoutes.splice(j, 1);
+          // Check if the route is a circle. If yes then it could be shifted
         } else if (startAndEndAreEqual(arrRoutes[i], arrRoutes[j])) {
+          // Compare routes with one route being shifted for every trail in the route
           if (compareShifted(arrRoutes[i], arrRoutes[j])) {
             arrRoutes.splice(j, 1);
+            // Compare routes after flipping and being shifted for every trail in the route
           } else if (compareShifted(arrRoutes[i], flippedRoute)) {
             arrRoutes.splice(j, 1);
           }
@@ -222,6 +227,7 @@ function filterIdenticalRoutes(arrLengthRoutes) {
       }
     }
   }
+  // Return all unique routes
   return [...arrRoutes];
 }
 

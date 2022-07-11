@@ -204,41 +204,73 @@ function whichRoutesAreShortest(routesList) {
 
 function filterIdenticalRoutes(arrLengthRoutes) {
   const arrRoutes = arrLengthRoutes.shift();
-  arrRoutes.forEach((route, index, routes) => {
-    if (sameStartAndEnd(route)) {
-      return route;
+  // Loop
+  for (let i = 0; i < arrRoutes.length - 1; i++) {
+    // If Same length
+    for (let j = 0; j < arrRoutes.length; j++) {
+      if (arrRoutes[i] === arrRoutes[j].length) {
+        if (startAndEndAreEqual(arrRoutes[i], arrRoutes[j])) {
+          const flippedRoute = routeFlipper(arrRoutes[j]);
+          if (compareTwoRoutes(arrRoutes[i], flippedRoute)) {
+            arrRoutes.splice(j, 1);
+          } else if (compareShifted(arrRoutes[i], arrRoutes[j])) {
+            arrRoutes.splice(j, 1);
+          } else if (compareShifted(arrRoutes[i], flippedRoute)) {
+            arrRoutes.splice(j, 1);
+          }
+        }
+      }
+    }
+  }
+  return [...arrRoutes];
+}
+
+function startAndEndAreEqual(route1, route2) {
+  const trail1 = Trails.find((trail) => trail.id === route1[0]);
+  const trail2 = Trails.find((trail) => trail.id === route1[1]);
+  const trail3 = Trails.find((trail) => trail.id === route2[route2.length - 1]);
+  const trail4 = Trails.find((trail) => trail.id === route2[route2.length - 2]);
+  trail1.push(...trail2);
+  trail3.push(...trail4);
+  let commonDenominators = new Set();
+  for (let i = 0; 1 < trail1.length; i++) {
+    if (intersection == trail3[i]) {
+      if (commonDenominators.find(intersection)) {
+        commonDenominators.intersection += 1;
+      } else {
+        commonDenominators.add((intersection += 1));
+      }
+    }
+  }
+  return commonDenominators.reduce((acc, intersection) => {
+    if (Math.floor(intersection / 2) === 0) {
+      acc = acc === true ? true : false;
     } else {
-      return;
+      acc = true;
     }
   });
 }
 
-function sameStartAndEnd(route) {
-  const firstTrail = Trails.find((trail) => trail.id === route[0]);
-  const secondTrail = Trails.find((trail) => trail.id === route[1]);
-  const lastTrail = Trails.find(
-    (trail) => trail.id === route[route.length - 1]
-  );
-  const secondToLastTrail = Trails.find(
-    (trail) => trail.id === route[route.length - 2]
-  );
-  const allIntersections = [
-    ...firstTrail.intersections,
-    ...secondTrail.intersections,
-    ...lastTrail.intersection,
-    ...secondToLastTrail.intersections,
-  ];
-  for (let i = 0; i < allIntersections.length; i++) {
-    allIntersections.forEach(
-      (intersection) => intersection === allIntersections[i]
-    );
+function compareShifted(route1, route2) {
+  letShiftedRoute = route2;
+  for (let i = 0; i < route1.length; i++) {
+    shiftedRoute = shiftedRoute.unshift(shiftedRoute.pop());
+    if (compareTwoRoutes(route1, shiftedRoute)) {
+      return true;
+    }
   }
-  allIntersections.every((firstIntersection) =>
-    allIntersections.every(
-      (secondIntersection) => secondIntersection !== firstIntersection
-    )
-  );
 }
+
+function compareTwoRoutes(route1, route2) {
+  for (let trail1 of route1) {
+    if (trail1 !== route2[index]) {
+      return false;
+    }
+    return true;
+  }
+}
+
+function compareOneRouteWithTheRemaining(route, routes) {}
 
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));

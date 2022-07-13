@@ -72,10 +72,13 @@ function routeTotal(trails) {
 (async function () {
   await fetchTrails(3);
   routeTotal(Trails);
-  giveRoutesTestingIntersections(testIntersections);
+  giveRoutesTestingIntersections(Incomplete);
   collectIntersects();
-  traverseTrails([], buildWalkedList(Trails), '1');
-  whichRoutesAreShortest(allPossibleRoutes);
+  startEveryWhere();
+  const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
+  console.log(shortestRoutes);
+  const filtered = filterIdenticalRoutes(shortestRoutes);
+  console.log(filtered);
 })();
 
 //Create list of trail intersections
@@ -83,6 +86,14 @@ function collectIntersects() {
   TrailIntersects = [];
   intersectEL = document.querySelectorAll('.intersect');
   intersectEL.forEach((intersect) => {
+    // Add intersections to the trail's properties
+
+    // Check for empty intersections and give them a random number
+    if (intersect.value === '') {
+      intersect.value = Math.floor(
+        Math.random() * 100 + 2 * intersectEL.length
+      ).toString();
+    }
     const trailObj = Trails.find((trail) => trail.id === intersect.dataset.id);
     if (trailObj.intersections) {
       trailObj.intersections.push(intersect.value);
@@ -90,10 +101,12 @@ function collectIntersects() {
       trailObj.intersections = [intersect.value];
     }
 
+    // Build a index for trail intersections
     if (TrailIntersects.hasOwnProperty(intersect.value)) {
-      TrailIntersects[intersect.value].push(intersect.dataset.id);
-    } else if (intersect.value === '') {
-      return;
+      // Check for trails that are loops
+      if (!TrailIntersects[intersect.value].includes(intersect.dataset.id)) {
+        TrailIntersects[intersect.value].push(intersect.dataset.id);
+      }
     } else {
       TrailIntersects[intersect.value] = [intersect.dataset.id];
     }
@@ -111,10 +124,10 @@ function buildWalkedList(trails) {
 
 // Get possible routes from different starting points
 function startEveryWhere() {
-  for (const intersect in TrailIntersects) {
+  for (let intersect in TrailIntersects) {
     if (TrailIntersects.hasOwnProperty(intersect)) {
-      console.log(typeof intersect);
-      findAllPossibleRoutes(intersect);
+      console.log('starte everyware index:' + intersect);
+      traverseTrails([], buildWalkedList(Trails), intersect);
     }
   }
 }
@@ -133,14 +146,15 @@ function removeWalkedTrail(curTrail, walkedTrails) {
 
 // Find the intersection at the other end of trail
 function findNextIntersection(connector, curTrail) {
-  let trailObj = Trails.find((trail) => trail.id === curTrail);
-  let oppositeIntersect = trailObj.intersections.filter((i) => i != connector);
-  return oppositeIntersect[0];
+  const trailObj = Trails.find((trail) => trail.id === curTrail);
+  const trailIntersects = [...trailObj.intersections];
+  trailIntersects.splice(trailIntersects.indexOf(connector), 1);
+  return trailIntersects[0];
 }
 
 // Determine if all the trails have been walked
-function trailsWalked(walkedtrails) {
-  return walkedtrails.map((trail) => trail.walked).every((trail) => trail > 0);
+function trailsWalked(walkedTrails) {
+  return walkedTrails.map((trail) => trail.walked).every((trail) => trail > 0);
 }
 
 // check if trail has been walked more than once
@@ -151,6 +165,7 @@ function backtrackCheck(curTrail, walkedTrails) {
 
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
+  console.log('traverse start int:' + intersection);
   const newRoute = route;
   // Stop recursive function if all trails have been walked
   if (trailsWalked(walkedTrails)) {
@@ -165,9 +180,11 @@ function traverseTrails(route, walkedTrails, intersection) {
         newRoute.push(newTrail);
         // Grab the intersection on the other end of the trail
         let newIntersect = findNextIntersection(intersection, newTrail);
+        console.log('New Int:' + newIntersect);
         // Mark the trail as walked
         let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
         // Call the recursive function
+        console.log(newRoute);
         traverseTrails(newRoute, newWalkedTrails, newIntersect);
         // Undo stuff so the for loop will work on next iteration
         removeWalkedTrail(newTrail, walkedTrails);
@@ -175,6 +192,7 @@ function traverseTrails(route, walkedTrails, intersection) {
       }
     });
   }
+  return allPossibleRoutes.push([]);
 }
 
 // Determine which routes are the shortest
@@ -203,81 +221,101 @@ function whichRoutesAreShortest(routesList) {
 }
 
 function filterIdenticalRoutes(arrLengthRoutes) {
-  const arrRoutes = arrLengthRoutes.shift();
+  const length = arrLengthRoutes.shift();
+  const arrRoutes = arrLengthRoutes;
   // Loop through and set route 1
   for (let i = 0; i < arrRoutes.length - 1; i++) {
     // Loop through and set route 2
-    for (let j = 0; j < arrRoutes.length; j++) {
+    for (let j = 1; j < arrRoutes.length; j++) {
       // Routes that don't have the same number of trails are not equal
-      if (arrRoutes[i] === arrRoutes[j].length) {
+      console.log('Routes Being Compared:' + i + ':' + j);
+      if (arrRoutes[i].length === arrRoutes[j].length) {
         // Create and compare a flipped version of the route being compared
-        const flippedRoute = routeFlipper(arrRoutes[j]);
-        if (compareTwoRoutes(arrRoutes[i], flippedRoute)) {
+        const flippedRoute = [...arrRoutes[j]].reverse();
+        //flippedRoute = flippedRoute.reverse();
+        if (
+          arrRoutes[i].every(
+            (element, index) => element === flippedRoute[index]
+          )
+        ) {
+          console.log('trails were reversed');
           arrRoutes.splice(j, 1);
-          // Check if the route is a circle. If yes then it could be shifted
-        } else if (startAndEndAreEqual(arrRoutes[i], arrRoutes[j])) {
+          j--;
+          // Check if the routes is a circle. If yes then it could be shifted
+        } else if (
+          startAndEndAreEqual(arrRoutes[i]) &&
+          startAndEndAreEqual(arrRoutes[j])
+        ) {
           // Compare routes with one route being shifted for every trail in the route
           if (compareShifted(arrRoutes[i], arrRoutes[j])) {
             arrRoutes.splice(j, 1);
+            j--;
+            console.log('shifted');
             // Compare routes after flipping and being shifted for every trail in the route
           } else if (compareShifted(arrRoutes[i], flippedRoute)) {
             arrRoutes.splice(j, 1);
+            j--;
+            console.log('reversed and shifted');
           }
         }
       }
     }
   }
   // Return all unique routes
-  return [...arrRoutes];
+  console.log([length, ...arrRoutes]);
+  return [length, ...arrRoutes];
 }
 
-function startAndEndAreEqual(route1, route2) {
-  const trail1 = Trails.find((trail) => trail.id === route1[0]);
-  const trail2 = Trails.find((trail) => trail.id === route1[1]);
-  const trail3 = Trails.find((trail) => trail.id === route2[route2.length - 1]);
-  const trail4 = Trails.find((trail) => trail.id === route2[route2.length - 2]);
-  trail1.push(...trail2);
-  trail3.push(...trail4);
-  let commonDenominators = new Set();
-  for (let i = 0; 1 < trail1.length; i++) {
-    if (intersection == trail3[i]) {
-      if (commonDenominators.find(intersection)) {
-        commonDenominators.intersection += 1;
+function startAndEndAreEqual(route) {
+  const trail1 = Trails.find((trail) => trail.id === route[0]);
+  const trail2 = Trails.find((trail) => trail.id === route[1]);
+  const trail3 = Trails.find((trail) => trail.id === route[route.length - 1]);
+  const trail4 = Trails.find((trail) => trail.id === route[route.length - 2]);
+  const arr = [
+    ...trail1.intersections,
+    ...trail2.intersections,
+    ...trail3.intersections,
+    ...trail4.intersections,
+  ];
+  // Find the lowest Common Denominator
+  let LCD = new Set();
+  // loop through first half of array
+  for (i = 0; i < 4; i++) {
+    // Loop through second half of array
+    for (j = 4; j < arr.length; j++) {
+      if (arr[i] in LCD) {
+        if (arr[i] === arr[j]) {
+          LCD[arr[i]] += 1;
+          arr.splice(j, 1);
+          j--;
+        }
       } else {
-        commonDenominators.add((intersection += 1));
+        if (arr[i] === arr[j]) {
+          LCD.add(arr[i]);
+          LCD[arr[i]] = 2;
+          arr.splice(j, 1);
+          j--;
+        }
       }
     }
   }
-  return commonDenominators.reduce((acc, intersection) => {
-    if (Math.floor(intersection / 2) === 0) {
-      acc = acc === true ? true : false;
-    } else {
-      acc = true;
-    }
-  });
-}
-
-function compareShifted(route1, route2) {
-  letShiftedRoute = route2;
-  for (let i = 0; i < route1.length; i++) {
-    shiftedRoute = shiftedRoute.unshift(shiftedRoute.pop());
-    if (compareTwoRoutes(route1, shiftedRoute)) {
+  for (let intersectionCount in LCD) {
+    if (LCD[intersectionCount] % 2 != 0) {
       return true;
     }
   }
   return false;
 }
 
-function compareTwoRoutes(route1, route2) {
-  for (let trail1 of route1) {
-    if (trail1 !== route2[index]) {
-      return false;
+function compareShifted(route1, route2) {
+  for (let i = 0; i < route1.length; i++) {
+    route2.unshift(route2.pop());
+    if (route1.every((trail, index) => trail === route2[index])) {
+      return true;
     }
-    return true;
   }
+  return false;
 }
-
-function compareOneRouteWithTheRemaining(route, routes) {}
 
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));
@@ -292,14 +330,12 @@ function giveRoutesTestingIntersections(intersectionList) {
   });
 }
 // Controlled test data
-const testIntersections = ['1', '2', '2', '3', '3', '1'];
-
-// //find the total time/distance of route
-// for each route in routes
-//   totalDist = '';
-//   for each trail in route
-//     totalDist += trail distance
-//   add totalDist to route
-
-// //find shortest route
-// reduce.routes by total distance or time
+const straightLoop = ['1', '2', '2', '3', '3', '1'];
+const triangle = ['1', '2', '1', '3', '1', '4', '4', '3'];
+const parallel = ['1', '2', '2', '3', '1', '2', '1', '2'];
+const parallelWithLoop = ['1', '2', '2', '3', '1', '2', '1', '1'];
+const twoTrailsParallel = ['1', '2', '1', '2'];
+const twoLoops = ['1', '1', '1', '1'];
+const oneTrail = ['1', '1'];
+const MissingData = ['1', '2', '', '3', '3', '1'];
+const Incomplete = ['1', '2', '3', '4', '5', '1'];

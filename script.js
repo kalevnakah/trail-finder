@@ -1,6 +1,5 @@
 const btnLoad = document.getElementById('load-btn');
 const btnIntersects = document.getElementById('intersect-btn');
-const box = document.getElementById('box');
 const trailsEl = document.getElementById('trails');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
@@ -68,9 +67,81 @@ function routeTotal(trails) {
   avgSpeedEl.innerHTML = `${(averageSpeed * (18 / 5)).toFixed(2)}`;
 }
 
+// Update DOM with trails to the routes
+function trailsToRouteDom(trail) {
+  const newTrail = document.createElement('div');
+  newTrail.classList.add('trail-rows', 'trail');
+  newTrail.id = trail.id;
+  newTrail.innerHTML = `
+    <div><p>${trail.title}</p></div>
+    <div><p>${trail.distance.toFixed(2)}</p></div>
+    <div><p>${Math.floor(trail.total_time / 60)}:${
+    trail.total_time % 60 > 9
+      ? trail.total_time % 60
+      : '0' + (trail.total_time % 60)
+  }
+    </p></div>
+    <div><p>${(trail.average_speed * (18 / 5)).toFixed(2)}</p></div>
+    <div>${trail.intersections[0]}</div>
+    <div>${trail.intersections[1]}</div>
+  `;
+  return newTrail;
+}
+
+function routesToDom(routes) {
+  routes.forEach((route, index) => {
+    const newHeader = document.createElement('H2');
+    newHeader.innerHTML = `Route ${index}: `;
+    document.body.appendChild(newHeader);
+    const newTrailsList = document.createElement('div');
+    newTrailsList.classList.add('box');
+    newTrailsList.id = index;
+    newTrailsList.innerHTML = `
+    <div id="trail-list" class="trails-list-head trail-rows">
+      <div>Name</div>
+      <div>Distance (Meters)</div>
+      <div>Time (MM:SS)</div>
+      <div>Speed (km/hr)</div>
+      <div>Trail Start</div>
+      <div>Trail End</div>
+    </div>
+    <div id="trails"></div>`;
+    document.body.appendChild(newTrailsList);
+
+    let totalDistance = 0;
+    let totalTime = 0;
+    let totalSpeed = 0;
+    for (let curTrail in route) {
+      let trailObj = Trails.find((trail) => trail.id === route[curTrail]);
+
+      totalDistance += trailObj.distance;
+      totalTime += trailObj.total_time;
+      totalSpeed += trailObj.average_speed;
+
+      document.body.lastChild.lastChild.appendChild(trailsToRouteDom(trailObj));
+    }
+    let averageSpeed = totalSpeed / route.length;
+    const newTotalEl = document.createElement('div');
+    newTotalEl.classList.add('trail-total', 'trail-rows');
+    newTotalEl.innerHTML = `
+    <div>Total:</div>
+        <div id="total-dist">${totalDistance.toFixed(2)}</div>
+        <div id="total-time" class="total-time">${Math.floor(totalTime / 60)}:${
+      totalTime % 60
+    }</div>
+        <div id="avg-speed" class="avg-speed">${(
+          averageSpeed *
+          (18 / 5)
+        ).toFixed(2)}</div>
+    `;
+    document.body.lastChild.lastChild.appendChild(newTotalEl);
+  });
+}
+
 // Initialize the program and fetch the js
 (async function () {
   await fetchTrails(4);
+  trailsEl.innerHTML = '';
   routeTotal(Trails);
   giveRoutesTestingIntersections(parallelWithLoop);
   collectIntersects();
@@ -81,6 +152,7 @@ function routeTotal(trails) {
     console.log(shortestRoutes);
     const filtered = filterIdenticalRoutes(shortestRoutes);
     console.log(filtered);
+    routesToDom(filtered);
   }
 })();
 
@@ -258,7 +330,7 @@ function filterIdenticalRoutes(arrLengthRoutes) {
     }
   }
   // Return all unique routes
-  return [length, ...arrRoutes];
+  return [...arrRoutes];
 }
 
 function startAndEndAreEqual(route) {

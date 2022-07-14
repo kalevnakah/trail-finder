@@ -20,7 +20,21 @@ I ran into a few issue creating a recursive function. First it was only returnin
 
 Now armed with a list of all possible routes, it is only matter of finding the shortest one. One would think you could just compare the sum of the lengths, but unfortunately there can be a lot of duplicates of the same route. For instance doing the same route in reverse and circular routes where starting at different intersection give you the same route. So, filtering out the longest routes, the routes still need be further filtered.
 
-I figured that circular routes would make the most noise in the data, so that would be a good place to start. To filter a circular route one could pop and unshift one array, compare, and repeat. But before doing this it seem to first check if the array was even in a circle in the first place. My array of trails in each route did not contain intersections, so I thought I could easily find the intersection by using the intersections from the first and last two trails. This resulted in a list of 4 intersections to compare and find a common denominator. After creating lots of different scenarios where routes would start and end in the same spot, I was to identify a a pattern that could be used to return true or false. There needed to be only one common denominator and if there were two than it was the one with an odd total count that was start and end point.
+I figured that circular routes would make the most noise in the data, so that would be a good place to start. To filter a circular route one could pop and unshift one array, compare, and repeat. But before doing this it seem to be good to first check if the route was even in a circle. My array of trails in each route did not contain intersections, so I thought I could easily find the intersection by using the intersections from the first and last two trails. This resulted in a list of 4 intersections to compare and find a common denominator. After creating lots of different scenarios where routes would start and end in the same spot, I was to identify a a pattern that could be used to return true or false. As much fun as this was to solve using functions, I'm thinking the code would be a lot more efficient if objects were used to keep track of route properties, like the start and end, to be recalled later.
+Will look at refactoring with OOP.
+
+The final filtering process that I settled on was:
+
+1. There are no exact copies to check for.
+2. Check if the routes have the same number of trails.
+3. If Yes....
+4. Flip the route and compare.
+5. Check if route starts and ends in the same place.
+6. If Yes...
+7. Shift the order of the route until a match is found.
+8. Use the flipped route and shift through until a match is found.
+
+If route duplicate route was found it was spliced from the list and the next trail in the list would be compared. This would repeat until every trail had been compared with every remaining trail.
 
 Preliminary Sudo Code
 

@@ -70,15 +70,18 @@ function routeTotal(trails) {
 
 // Initialize the program and fetch the js
 (async function () {
-  await fetchTrails(3);
+  await fetchTrails(4);
   routeTotal(Trails);
-  giveRoutesTestingIntersections(Incomplete);
+  giveRoutesTestingIntersections(parallelWithLoop);
   collectIntersects();
   startEveryWhere();
-  const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
-  console.log(shortestRoutes);
-  const filtered = filterIdenticalRoutes(shortestRoutes);
-  console.log(filtered);
+  console.log(allPossibleRoutes);
+  if (allPossibleRoutes.length !== 0) {
+    const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
+    console.log(shortestRoutes);
+    const filtered = filterIdenticalRoutes(shortestRoutes);
+    console.log(filtered);
+  }
 })();
 
 //Create list of trail intersections
@@ -126,7 +129,6 @@ function buildWalkedList(trails) {
 function startEveryWhere() {
   for (let intersect in TrailIntersects) {
     if (TrailIntersects.hasOwnProperty(intersect)) {
-      console.log('starte everyware index:' + intersect);
       traverseTrails([], buildWalkedList(Trails), intersect);
     }
   }
@@ -165,7 +167,6 @@ function backtrackCheck(curTrail, walkedTrails) {
 
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
-  console.log('traverse start int:' + intersection);
   const newRoute = route;
   // Stop recursive function if all trails have been walked
   if (trailsWalked(walkedTrails)) {
@@ -180,11 +181,9 @@ function traverseTrails(route, walkedTrails, intersection) {
         newRoute.push(newTrail);
         // Grab the intersection on the other end of the trail
         let newIntersect = findNextIntersection(intersection, newTrail);
-        console.log('New Int:' + newIntersect);
         // Mark the trail as walked
         let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
         // Call the recursive function
-        console.log(newRoute);
         traverseTrails(newRoute, newWalkedTrails, newIntersect);
         // Undo stuff so the for loop will work on next iteration
         removeWalkedTrail(newTrail, walkedTrails);
@@ -192,7 +191,6 @@ function traverseTrails(route, walkedTrails, intersection) {
       }
     });
   }
-  return allPossibleRoutes.push([]);
 }
 
 // Determine which routes are the shortest
@@ -228,7 +226,6 @@ function filterIdenticalRoutes(arrLengthRoutes) {
     // Loop through and set route 2
     for (let j = 1; j < arrRoutes.length; j++) {
       // Routes that don't have the same number of trails are not equal
-      console.log('Routes Being Compared:' + i + ':' + j);
       if (arrRoutes[i].length === arrRoutes[j].length) {
         // Create and compare a flipped version of the route being compared
         const flippedRoute = [...arrRoutes[j]].reverse();
@@ -238,7 +235,6 @@ function filterIdenticalRoutes(arrLengthRoutes) {
             (element, index) => element === flippedRoute[index]
           )
         ) {
-          console.log('trails were reversed');
           arrRoutes.splice(j, 1);
           j--;
           // Check if the routes is a circle. If yes then it could be shifted
@@ -262,49 +258,83 @@ function filterIdenticalRoutes(arrLengthRoutes) {
     }
   }
   // Return all unique routes
-  console.log([length, ...arrRoutes]);
   return [length, ...arrRoutes];
 }
 
 function startAndEndAreEqual(route) {
   const trail1 = Trails.find((trail) => trail.id === route[0]);
   const trail2 = Trails.find((trail) => trail.id === route[1]);
-  const trail3 = Trails.find((trail) => trail.id === route[route.length - 1]);
-  const trail4 = Trails.find((trail) => trail.id === route[route.length - 2]);
-  const arr = [
-    ...trail1.intersections,
-    ...trail2.intersections,
-    ...trail3.intersections,
-    ...trail4.intersections,
-  ];
-  // Find the lowest Common Denominator
-  let LCD = new Set();
-  // loop through first half of array
-  for (i = 0; i < 4; i++) {
-    // Loop through second half of array
-    for (j = 4; j < arr.length; j++) {
-      if (arr[i] in LCD) {
-        if (arr[i] === arr[j]) {
-          LCD[arr[i]] += 1;
-          arr.splice(j, 1);
-          j--;
-        }
-      } else {
-        if (arr[i] === arr[j]) {
-          LCD.add(arr[i]);
-          LCD[arr[i]] = 2;
-          arr.splice(j, 1);
-          j--;
+  const trail3 = Trails.find((trail) => trail.id === route[route.length - 2]);
+  const trail4 = Trails.find((trail) => trail.id === route[route.length - 1]);
+  const trailInt1 = [...trail1.intersections];
+  const trailInt2 = [...trail2.intersections];
+  const trailInt3 = [...trail3.intersections];
+  const trailInt4 = [...trail4.intersections];
+  let startInt = [];
+  let endInt = [];
+  // find start of trail
+  if (arraysAreEqual(trailInt1, trailInt2)) {
+    startInt = [...trailInt1];
+  } else {
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        if (trailInt1[i] === trailInt2[j]) {
+          startInt = [findNextIntersection(trailInt1[i], trail1.id)];
+          break;
         }
       }
     }
   }
-  for (let intersectionCount in LCD) {
-    if (LCD[intersectionCount] % 2 != 0) {
-      return true;
+  // find end of trail
+  if (arraysAreEqual(trailInt3, trailInt4)) {
+    endInt = [...trailInt4];
+  } else {
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        if (trailInt3[j] === trailInt4[i]) {
+          endInt = [findNextIntersection(trailInt4[i], trail4.id)];
+          break;
+        }
+      }
+    }
+  }
+  if (commonNumberInArray(startInt, endInt)) {
+    return true;
+  }
+  return false;
+}
+
+function commonNumberInArray(arr1, arr2) {
+  let L1 = arr1.length;
+  let L2 = arr2.length;
+
+  arr1.sort();
+  arr2.sort();
+
+  for (i = 0; i < L1; i++) {
+    for (j = 0; j < L2; j++) {
+      if (arr1[i] == arr2[j]) {
+        return true;
+      }
     }
   }
   return false;
+}
+
+function arraysAreEqual(arr1, arr2) {
+  let L1 = arr1.length;
+  let L2 = arr2.length;
+  if (L1 != L2) {
+    return false;
+  }
+  arr1.sort();
+  arr2.sort();
+  for (i = 0; i < L1; i++) {
+    if (arr1[i] != arr2[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function compareShifted(route1, route2) {
@@ -339,3 +369,17 @@ const twoLoops = ['1', '1', '1', '1'];
 const oneTrail = ['1', '1'];
 const MissingData = ['1', '2', '', '3', '3', '1'];
 const Incomplete = ['1', '2', '3', '4', '5', '1'];
+const StickFigure = [
+  '1',
+  '1',
+  '1',
+  '2',
+  '1',
+  '3',
+  '1',
+  '4',
+  '4',
+  '5',
+  '4',
+  '6',
+];

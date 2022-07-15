@@ -9,6 +9,10 @@
   </head>
   <body>
     <h1>Find Optimal Trail Route</h1>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="files[]" multiple />
+      <input type="submit" value="Upload File" name="submit" />
+    </form>
     <button id="load-btn">Load Trails</button>
     <div class="box">
       <div id="trail-list" class="trails-list-head trail-rows">
@@ -29,6 +33,7 @@
     </div>
     <button id="intersect-btn">Save Intersections</button>
     <div class="box"></div>
+    <script src="upload.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

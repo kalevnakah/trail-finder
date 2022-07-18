@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $exploded = explode('.', $_FILES['files']['name'][$i]);
       $file_ext = strtolower(end($exploded));
       
-      $file = $path . $file_name;
+      $file = $path . $exploded[0] . '.json';
 
       if (!in_array($file_ext, $extensions)) {
         $errors[] = 'Extension not allowed: ' . $file_name . ' ' . $file_type;

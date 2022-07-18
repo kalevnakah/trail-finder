@@ -1,14 +1,20 @@
+// Dom Variables
 const btnLoad = document.getElementById('load-btn');
 const btnIntersects = document.getElementById('intersect-btn');
 const trailsEl = document.getElementById('trails');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
-let intersectEL = [];
 
-const Trails = [];
+// Global Variables
+let intersectEL = [];
+let Trails = [];
 let TrailIntersects = {};
 const allPossibleRoutes = [];
+
+//Upload variables
+const url = 'upload.php';
+const form = document.querySelector('form');
 
 // Extract the properties from the json files
 async function extractData(file) {
@@ -18,13 +24,52 @@ async function extractData(file) {
   return data.features[0].properties;
 }
 
-//iterate through all the files and build the new trails list
-async function fetchTrails(numOfFiles) {
-  for (let i = 1; i <= numOfFiles; i++) {
-    let file = `trails/${i}.json`;
+// Get Trails from local storage
+async function recallAllTrails() {
+  if (localStorage.getItem('Trails')) {
+    Trails = await JSON.parse(localStorage.getItem('Trails'));
+    for (let i = 0; i < Trails.length; i++) {
+      trailsToDom(Trails[i]);
+    }
+  }
+}
+
+// Iterate through all the uploaded files and add to trails.
+async function fetchTrails(trailList) {
+  for (let i = 0; i < trailList.length; i++) {
+    splitFile = trailList[i].split('.');
+    file = `trails/${splitFile[0]}.json`;
     const trail = await extractData(file);
     Trails.push(trail);
+    localStorage.setItem('Trails', JSON.stringify(Trails));
+    trailsToDom(trail);
   }
+}
+
+// Upload files to the server
+async function upload(e) {
+  e.preventDefault();
+
+  // Gather files and begin FormData
+  const files = document.querySelector('[type=file]').files;
+  const formData = new FormData();
+  const fileList = [];
+
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    formData.append('files[]', file);
+    fileList.push(file['name']);
+  }
+
+  await fetch(url, {
+    method: 'POST',
+    body: formData,
+  }).then((response) => {
+    //console.log(response);
+  });
+
+  await fetchTrails(fileList);
+  routeTotal(Trails);
 }
 
 function luma(color) {
@@ -74,21 +119,22 @@ function trailsToDom(trail) {
 
 //find the total distance and time of route
 function routeTotal(trails) {
-  let totalDistance = 0;
-  let totalTime = 0;
-  let totalSpeed = 0;
+  if (trails != null) {
+    let totalDistance = 0;
+    let totalTime = 0;
+    let totalSpeed = 0;
 
-  for (let i in trails) {
-    totalDistance += trails[i].distance;
-    totalTime += trails[i].total_time;
-    totalSpeed += trails[i].average_speed;
-    trailsToDom(trails[i]);
+    for (let i in trails) {
+      totalDistance += trails[i].distance;
+      totalTime += trails[i].total_time;
+      totalSpeed += trails[i].average_speed;
+    }
+    let averageSpeed = totalSpeed / trails.length;
+
+    totalDistEL.innerHTML = `${totalDistance.toFixed(2)}`;
+    totalTimeEl.innerHTML = `${Math.floor(totalTime / 60)}:${totalTime % 60}`;
+    avgSpeedEl.innerHTML = `${(averageSpeed * (18 / 5)).toFixed(2)}`;
   }
-  let averageSpeed = totalSpeed / trails.length;
-
-  totalDistEL.innerHTML = `${totalDistance.toFixed(2)}`;
-  totalTimeEl.innerHTML = `${Math.floor(totalTime / 60)}:${totalTime % 60}`;
-  avgSpeedEl.innerHTML = `${(averageSpeed * (18 / 5)).toFixed(2)}`;
 }
 
 // Update DOM with trails to the routes
@@ -165,22 +211,33 @@ function routesToDom(routes) {
   });
 }
 
+function recallIntersections() {
+  if (localStorage.getItem('TrailsIntersects')) {
+    TrailIntersects = JSON.parse(localStorage.getItem('TrailsIntersects'));
+    const intersectEL = document.querySelectorAll('.intersect');
+    intersectEL.forEach((el) => {
+      let trailInt = Trails.find((trail) => {
+        trail.id === el.dataset.id;
+      });
+      console.log(trailInt);
+    });
+  }
+}
+
 // Initialize the program and fetch the js
 (async function () {
-  await fetchTrails(4);
   trailsEl.innerHTML = '';
+  await recallAllTrails();
   routeTotal(Trails);
-  giveRoutesTestingIntersections(parallelWithLoop);
-  collectIntersects();
-  startEveryWhere();
-  console.log(allPossibleRoutes);
-  if (allPossibleRoutes.length !== 0) {
-    const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
-    console.log(shortestRoutes);
-    const filtered = filterIdenticalRoutes(shortestRoutes);
-    console.log(filtered);
-    routesToDom(filtered);
-  }
+  recallIntersections();
+  // giveRoutesTestingIntersections(parallelWithLoop);
+  // collectIntersects();
+  // startEveryWhere();
+  // if (allPossibleRoutes.length !== 0) {
+  //   const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
+  //   const filtered = filterIdenticalRoutes(shortestRoutes);
+  //   routesToDom(filtered);
+  // }
 })();
 
 //Create list of trail intersections
@@ -213,6 +270,8 @@ function collectIntersects() {
       TrailIntersects[intersect.value] = [intersect.dataset.id];
     }
   });
+  localStorage.setItem('TrailsIntersects', JSON.stringify(TrailIntersects));
+  localStorage.setItem('Trails', JSON.stringify(Trails));
 }
 
 // Build a list can keep track of the state of the trails while traversing them.
@@ -298,7 +357,7 @@ function whichRoutesAreShortest(routesList) {
     //Add up the total length of the route
     const routeLength = route.reduce((routeTotalDistance, curTrail) => {
       let trailObj = Trails.find((trail) => trail.id === curTrail);
-      // Round to two decimal to catch float errors and trails that pretty much equal.
+      // Round to two decimal to catch float errors and trails that are pretty much equal.
       return routeTotalDistance + parseFloat(trailObj.distance.toFixed(2));
     }, 0);
     // Add route to the accumulator and reset it if the route is shorter.
@@ -449,6 +508,7 @@ function compareShifted(route1, route2) {
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));
 btnIntersects.addEventListener('click', collectIntersects);
+form.addEventListener('submit', upload);
 
 // Test functions
 // Fill in the intersections
@@ -458,6 +518,7 @@ function giveRoutesTestingIntersections(intersectionList) {
     intersect.value = intersectionList[index];
   });
 }
+
 // Controlled test data
 const straightLoop = ['1', '2', '2', '3', '3', '1'];
 const triangle = ['1', '2', '1', '3', '1', '4', '4', '3'];

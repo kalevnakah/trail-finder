@@ -215,12 +215,18 @@ function recallIntersections() {
   if (localStorage.getItem('TrailsIntersects')) {
     TrailIntersects = JSON.parse(localStorage.getItem('TrailsIntersects'));
     const intersectEL = document.querySelectorAll('.intersect');
-    intersectEL.forEach((el) => {
-      let trailInt = Trails.find((trail) => {
-        trail.id === el.dataset.id;
-      });
-      console.log(trailInt);
-    });
+    let two = 0;
+    for (let i = 0; i < intersectEL.length; i++) {
+      let trailInt = Trails.find(
+        (trail) => trail.id === intersectEL[i].dataset.id
+      );
+      intersectEL[i].value = trailInt.intersections[two];
+      if (two < 1) {
+        two++;
+      } else {
+        two = 0;
+      }
+    }
   }
 }
 

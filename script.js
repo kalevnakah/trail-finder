@@ -5,6 +5,7 @@ const trailsEl = document.getElementById('trails');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
+const btnDeleteAll = document.getElementById('delete-all-btn');
 
 // Global Variables
 let intersectEL = [];
@@ -13,8 +14,10 @@ let TrailIntersects = {};
 const allPossibleRoutes = [];
 
 //Upload variables
-const url = 'upload.php';
+const uploadUrl = 'upload.php';
+const deleteUrl = 'delete.php';
 const form = document.querySelector('form');
+const input = document.getElementsByName('files[]');
 
 // Extract the properties from the json files
 async function extractData(file) {
@@ -61,15 +64,24 @@ async function upload(e) {
     fileList.push(file['name']);
   }
 
-  await fetch(url, {
+  await fetch(uploadUrl, {
+    method: 'POST',
+    body: formData,
+  }).then((response) => {
+    alert(response);
+  });
+
+  await fetchTrails(fileList);
+  routeTotal(Trails);
+  console.log(input);
+  input[0].value = '';
+
+  await fetch(deleteUrl, {
     method: 'POST',
     body: formData,
   }).then((response) => {
     //console.log(response);
   });
-
-  await fetchTrails(fileList);
-  routeTotal(Trails);
 }
 
 function luma(color) {
@@ -209,6 +221,12 @@ function routesToDom(routes) {
     `;
     document.body.lastChild.lastChild.appendChild(newTotalEl);
   });
+}
+
+function clearTrails() {
+  localStorage.removeItem('Trails');
+  localStorage.removeItem('TrailsIntersects');
+  trailsEl.innerHTML = '';
 }
 
 function recallIntersections() {
@@ -513,6 +531,7 @@ function compareShifted(route1, route2) {
 
 // Event Listeners
 btnLoad.addEventListener('click', routeTotal(Trails));
+btnDeleteAll.addEventListener('click', clearTrails);
 btnIntersects.addEventListener('click', collectIntersects);
 form.addEventListener('submit', upload);
 

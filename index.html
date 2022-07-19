@@ -9,11 +9,18 @@
   </head>
   <body>
     <h1>Find Optimal Trail Route</h1>
-    <form method="post" enctype="multipart/form-data">
-      <input type="file" name="files[]" multiple />
-      <input type="submit" value="Upload File" name="submit" />
-    </form>
-    <button id="load-btn">Load Trails</button>
+    <div class="upload">
+      <div class="upload-form">
+        <form method="post" enctype="multipart/form-data">
+          <input type="file" name="files[]" multiple />
+          <input type="submit" value="Upload File" name="submit" />
+        </form>
+      </div>
+      <div class="upload-sample-btn">
+        <button id="load-btn">Load Sample Trails</button>
+        <button id="delete-all-btn">Delete All Trails</button>
+      </div>
+    </div>
     <div class="box">
       <div id="trail-list" class="trails-list-head trail-rows">
         <div>Name</div>

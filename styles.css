@@ -21,6 +21,31 @@ button {
   font-size: 12px;
   padding: 5px 12px;
   margin: 10px auto;
+  border: none;
+}
+
+form {
+  background-color: #1e561e;
+  color: whitesmoke;
+  padding: 10px;
+  margin: 0;
+}
+
+.upload {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 10px 20px;
+  padding: 0;
+}
+
+.upload-form {
+  text-align: center;
+  margin: auto 0;
+}
+
+.upload-sample-btn {
+  margin: auto 0;
 }
 
 .box {

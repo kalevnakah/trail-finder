@@ -197,12 +197,38 @@ function routesToDom(routes) {
     let totalDistance = 0;
     let totalTime = 0;
     let totalSpeed = 0;
+    let trailNum = 1;
+    const routeExport = [
+      [
+        'Order',
+        'Name',
+        'Distance(Meters)',
+        'Time(MM:SS)',
+        'Speed(km/hr)',
+        'Trail Start',
+        'Trail End',
+      ],
+    ];
+
     for (let curTrail in route) {
       let trailObj = Trails.find((trail) => trail.id === route[curTrail]);
 
+      let trailName = trailObj.title;
       totalDistance += trailObj.distance;
       totalTime += trailObj.total_time;
       totalSpeed += trailObj.average_speed;
+
+      routeExport.push([
+        trailNum,
+        trailName,
+        totalDistance,
+        totalTime,
+        totalSpeed,
+        trailObj.intersections[0],
+        trailObj.intersections[1],
+      ]);
+
+      trailNum++;
 
       document.body.lastChild.lastChild.appendChild(trailsToRouteDom(trailObj));
     }
@@ -210,7 +236,7 @@ function routesToDom(routes) {
     const newTotalEl = document.createElement('div');
     newTotalEl.classList.add('trail-total', 'trail-rows');
     newTotalEl.innerHTML = `
-    <div>Total:</div>
+    <div>Total: Number of trails = ${route.length}</div>
         <div id="total-dist">${totalDistance.toFixed(2)}</div>
         <div id="total-time" class="total-time">${Math.floor(totalTime / 60)}:${
       totalTime % 60
@@ -221,6 +247,14 @@ function routesToDom(routes) {
         ).toFixed(2)}</div>
     `;
     document.body.lastChild.lastChild.appendChild(newTotalEl);
+
+    //Create Export Button
+    const newDownloadBtn = document.createElement('button');
+    newDownloadBtn.innerHTML = `Save Route ${index} To CSV`;
+    newDownloadBtn.onclick = function () {
+      exportToCsv(`route${index}`, routeExport);
+    };
+    document.body.appendChild(newDownloadBtn);
   });
 }
 
@@ -230,6 +264,7 @@ function clearTrails() {
   trailsEl.innerHTML = '';
   Trails = [];
   TrailIntersects = {};
+  routeTotal();
 }
 
 async function loadSampleTrails() {
@@ -239,6 +274,7 @@ async function loadSampleTrails() {
     files.push(`${i}.json`);
   }
   await fetchTrails(files);
+  routeTotal(Trails);
   giveRoutesTestingIntersections(StickFigure);
   collectIntersects();
 }
@@ -278,14 +314,6 @@ function calculateShortestRoute() {
   await recallAllTrails();
   routeTotal(Trails);
   recallIntersections();
-  // giveRoutesTestingIntersections(parallelWithLoop);
-  // collectIntersects();
-  // startEveryWhere();
-  // if (allPossibleRoutes.length !== 0) {
-  //   const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
-  //   const filtered = filterIdenticalRoutes(shortestRoutes);
-  //   routesToDom(filtered);
-  // }
 })();
 
 //Create list of trail intersections
@@ -551,6 +579,47 @@ function compareShifted(route1, route2) {
     }
   }
   return false;
+}
+
+function exportToCsv(filename, rows) {
+  var processRow = function (row) {
+    var finalVal = '';
+    for (var j = 0; j < row.length; j++) {
+      var innerValue = row[j] === null ? '' : row[j].toString();
+      if (row[j] instanceof Date) {
+        innerValue = row[j].toLocaleString();
+      }
+      var result = innerValue.replace(/"/g, '""');
+      if (result.search(/("|,|\n)/g) >= 0) result = '"' + result + '"';
+      if (j > 0) finalVal += ',';
+      finalVal += result;
+    }
+    return finalVal + '\n';
+  };
+
+  var csvFile = '';
+  for (var i = 0; i < rows.length; i++) {
+    csvFile += processRow(rows[i]);
+  }
+
+  var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+  if (navigator.msSaveBlob) {
+    // IE 10+
+    navigator.msSaveBlob(blob, filename);
+  } else {
+    var link = document.createElement('a');
+    if (link.download !== undefined) {
+      // feature detection
+      // Browsers that support HTML5 download attribute
+      var url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
 }
 
 // Event Listeners

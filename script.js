@@ -1,11 +1,12 @@
 // Dom Variables
-const btnLoad = document.getElementById('load-btn');
+const btnLoadSample = document.getElementById('load-sample-btn');
 const btnIntersects = document.getElementById('intersect-btn');
 const trailsEl = document.getElementById('trails');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
 const btnDeleteAll = document.getElementById('delete-all-btn');
+const btnCalculateShortest = document.getElementById('calculate-shortest-btn');
 
 // Global Variables
 let intersectEL = [];
@@ -227,6 +228,19 @@ function clearTrails() {
   localStorage.removeItem('Trails');
   localStorage.removeItem('TrailsIntersects');
   trailsEl.innerHTML = '';
+  Trails = [];
+  TrailIntersects = {};
+}
+
+async function loadSampleTrails() {
+  numberOfFiles = 6;
+  files = [];
+  for (i = 1; i < numberOfFiles; i++) {
+    files.push(`${i}.json`);
+  }
+  await fetchTrails(files);
+  giveRoutesTestingIntersections(StickFigure);
+  collectIntersects();
 }
 
 function recallIntersections() {
@@ -245,6 +259,16 @@ function recallIntersections() {
         two = 0;
       }
     }
+  }
+}
+
+function calculateShortestRoute() {
+  collectIntersects();
+  startEveryWhere();
+  if (allPossibleRoutes.length !== 0) {
+    const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
+    const filtered = filterIdenticalRoutes(shortestRoutes);
+    routesToDom(filtered);
   }
 }
 
@@ -530,17 +554,22 @@ function compareShifted(route1, route2) {
 }
 
 // Event Listeners
-btnLoad.addEventListener('click', routeTotal(Trails));
+btnLoadSample.addEventListener('click', loadSampleTrails);
 btnDeleteAll.addEventListener('click', clearTrails);
 btnIntersects.addEventListener('click', collectIntersects);
 form.addEventListener('submit', upload);
+btnCalculateShortest.addEventListener('click', calculateShortestRoute);
 
-// Test functions
+// Test functions and Sample Data
 // Fill in the intersections
 function giveRoutesTestingIntersections(intersectionList) {
   intersectEL = document.querySelectorAll('.intersect');
-  intersectEL.forEach((intersect, index) => {
-    intersect.value = intersectionList[index];
+  index = 0;
+  intersectEL.forEach((intersect) => {
+    if (index < intersectionList.length) {
+      intersect.value = intersectionList[index];
+      index++;
+    }
   });
 }
 

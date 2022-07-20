@@ -88,9 +88,10 @@ form {
 }
 
 .delete {
-  background-color: #000;
+  background-color: #363115;
   color: #fff;
   padding: 5px;
+  border: 2px solid #000;
   border-radius: 25%;
   position: absolute;
   left: 5px;

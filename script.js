@@ -281,7 +281,7 @@ function clearTrails() {
   routesEl.innerHTML = '';
   Trails = [];
   TrailIntersects = {};
-  routeTotal();
+  routeTotal(Trails);
 }
 
 function deleteTrail(trailEl, trailId) {
@@ -292,7 +292,7 @@ function deleteTrail(trailEl, trailId) {
   Trails.splice(trailIndex, 1);
   TrailIntersects = {};
   buildIntersectionList();
-  routeTotal();
+  routeTotal(Trails);
 }
 
 async function loadSampleTrails() {
@@ -399,6 +399,12 @@ function buildIntersectionList() {
 
 // Add intersections to trails and build an intersectionsList;
 function collectIntersects() {
+  addIntersectionsToTrails();
+  buildIntersectionList();
+}
+
+// Save intersections when button is pressed
+function saveIntersects() {
   addIntersectionsToTrails();
   buildIntersectionList();
   alert('Routes have been saved to local storage.');
@@ -679,7 +685,7 @@ function exportToCsv(filename, rows) {
 // Event Listeners
 btnLoadSample.addEventListener('click', loadSampleTrails);
 btnDeleteAll.addEventListener('click', clearTrails);
-btnIntersects.addEventListener('click', collectIntersects);
+btnIntersects.addEventListener('click', saveIntersects);
 form.addEventListener('submit', upload);
 btnCalculateShortest.addEventListener('click', calculateShortestRoute);
 

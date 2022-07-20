@@ -538,12 +538,10 @@ function filterIdenticalRoutes(arrLengthRoutes) {
           if (compareShifted(arrRoutes[i], arrRoutes[j])) {
             arrRoutes.splice(j, 1);
             j--;
-            console.log('shifted');
             // Compare routes after flipping and being shifted for every trail in the route
           } else if (compareShifted(arrRoutes[i], flippedRoute)) {
             arrRoutes.splice(j, 1);
             j--;
-            console.log('reversed and shifted');
           }
         }
       }

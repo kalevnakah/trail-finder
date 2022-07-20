@@ -66,23 +66,21 @@ async function upload(e) {
     fileList.push(file['name']);
   }
 
+  //Upload file to server
   await fetch(uploadUrl, {
     method: 'POST',
     body: formData,
-  }).then((response) => {
-    alert(response);
   });
 
+  // Get the data from the file
   await fetchTrails(fileList);
   routeTotal(Trails);
-  console.log(input);
   input[0].value = '';
 
+  //Delete the file from the server
   await fetch(deleteUrl, {
     method: 'POST',
     body: formData,
-  }).then((response) => {
-    //console.log(response);
   });
 }
 

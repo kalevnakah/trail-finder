@@ -2,6 +2,7 @@
 const btnLoadSample = document.getElementById('load-sample-btn');
 const btnIntersects = document.getElementById('intersect-btn');
 const trailsEl = document.getElementById('trails');
+const routesEl = document.getElementById('routes');
 const totalDistEL = document.getElementById('total-dist');
 const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
@@ -12,7 +13,7 @@ const btnCalculateShortest = document.getElementById('calculate-shortest-btn');
 let intersectEL = [];
 let Trails = [];
 let TrailIntersects = {};
-const allPossibleRoutes = [];
+let allPossibleRoutes = [];
 
 //Upload variables
 const uploadUrl = 'upload.php';
@@ -108,6 +109,13 @@ function hexToRGBArray(color) {
 
 // Update DOM with trails list
 function trailsToDom(trail) {
+  const deleteTrail = document.createElement('button');
+  deleteTrail.innerHTML = 'X';
+  deleteTrail.classList.add('delete');
+  deleteTrail.addEventListener('click', function () {
+    deleteTrail(deleteTrail, trail.id);
+    trailsEl.removeChild(newTrail);
+  });
   const newTrail = document.createElement('div');
   newTrail.classList.add('trail-rows', 'trail');
   newTrail.id = trail.id;
@@ -115,7 +123,9 @@ function trailsToDom(trail) {
   newTrail.style.color =
     luma(trail.color.substring(1)) >= 165 ? '#000' : '#fff';
   newTrail.innerHTML = `
-    <div><p>${trail.title}</p></div>
+    <div class="trail-title"><button class='delete' onclick="deleteTrail(this,'${
+      trail.id
+    }')">x</button><p>${trail.title}</p></div>
     <div><p>${trail.distance.toFixed(2)}</p></div>
     <div><p>${Math.floor(trail.total_time / 60)}:${
     trail.total_time % 60 > 9
@@ -176,12 +186,15 @@ function trailsToRouteDom(trail) {
 
 function routesToDom(routes) {
   routes.forEach((route, index) => {
+    const newRouteContainer = document.createElement('div');
+    newRouteContainer.id = index;
+    newRouteContainer.classList.add('routeContainer');
     const newHeader = document.createElement('H2');
     newHeader.innerHTML = `Route ${index}`;
-    document.body.appendChild(newHeader);
+    //document.body.appendChild(newHeader);
+    newRouteContainer.appendChild(newHeader);
     const newTrailsList = document.createElement('div');
     newTrailsList.classList.add('box');
-    newTrailsList.id = index;
     newTrailsList.innerHTML = `
     <div id="trail-list" class="trails-list-head trail-rows">
       <div>Name</div>
@@ -192,8 +205,8 @@ function routesToDom(routes) {
       <div>Trail End</div>
     </div>
     <div id="trails"></div>`;
-    document.body.appendChild(newTrailsList);
-
+    //document.body.appendChild(newTrailsList);
+    newRouteContainer.appendChild(newTrailsList);
     let totalDistance = 0;
     let totalTime = 0;
     let totalSpeed = 0;
@@ -230,7 +243,9 @@ function routesToDom(routes) {
 
       trailNum++;
 
-      document.body.lastChild.lastChild.appendChild(trailsToRouteDom(trailObj));
+      newRouteContainer.lastChild.lastChild.appendChild(
+        trailsToRouteDom(trailObj)
+      );
     }
     let averageSpeed = totalSpeed / route.length;
     const newTotalEl = document.createElement('div');
@@ -246,7 +261,7 @@ function routesToDom(routes) {
           (18 / 5)
         ).toFixed(2)}</div>
     `;
-    document.body.lastChild.lastChild.appendChild(newTotalEl);
+    newRouteContainer.lastChild.lastChild.appendChild(newTotalEl);
 
     //Create Export Button
     const newDownloadBtn = document.createElement('button');
@@ -254,7 +269,8 @@ function routesToDom(routes) {
     newDownloadBtn.onclick = function () {
       exportToCsv(`route${index}`, routeExport);
     };
-    document.body.appendChild(newDownloadBtn);
+    newRouteContainer.appendChild(newDownloadBtn);
+    routesEl.appendChild(newRouteContainer);
   });
 }
 
@@ -262,8 +278,20 @@ function clearTrails() {
   localStorage.removeItem('Trails');
   localStorage.removeItem('TrailsIntersects');
   trailsEl.innerHTML = '';
+  routesEl.innerHTML = '';
   Trails = [];
   TrailIntersects = {};
+  routeTotal();
+}
+
+function deleteTrail(trailEl, trailId) {
+  trailEl.parentNode.parentNode.remove();
+  localStorage.removeItem('Trails');
+  localStorage.removeItem('TrailsIntersects');
+  const trailIndex = Trails.findIndex((trail) => trail.id === trailId);
+  Trails.splice(trailIndex, 1);
+  TrailIntersects = {};
+  buildIntersectionList();
   routeTotal();
 }
 
@@ -299,12 +327,16 @@ function recallIntersections() {
 }
 
 function calculateShortestRoute() {
+  allPossibleRoutes = [];
+  routesEl.innerHTML = '';
   collectIntersects();
   startEveryWhere();
   if (allPossibleRoutes.length !== 0) {
     const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
     const filtered = filterIdenticalRoutes(shortestRoutes);
     routesToDom(filtered);
+  } else {
+    routesEl.innerHTML = `<h1>No Possible Routes Found</h1>`;
   }
 }
 
@@ -317,17 +349,20 @@ function calculateShortestRoute() {
 })();
 
 //Create list of trail intersections
-function collectIntersects() {
+function addIntersectionsToTrails() {
   TrailIntersects = [];
   intersectEL = document.querySelectorAll('.intersect');
-  intersectEL.forEach((intersect) => {
-    // Add intersections to the trail's properties
 
-    // Check for empty intersections and give them a random number
+  //clear intersections before rebuilding them.
+  Trails.forEach((intersect) => {
+    intersect.intersections = '';
+  });
+
+  // Add intersections to the trail's properties
+  intersectEL.forEach((intersect) => {
+    // Check for empty intersections and give a default;
     if (intersect.value === '') {
-      intersect.value = Math.floor(
-        Math.random() * 100 + 2 * intersectEL.length
-      ).toString();
+      intersect.value = 'none';
     }
     const trailObj = Trails.find((trail) => trail.id === intersect.dataset.id);
     if (trailObj.intersections) {
@@ -335,7 +370,20 @@ function collectIntersects() {
     } else {
       trailObj.intersections = [intersect.value];
     }
+  });
 
+  localStorage.setItem('Trails', JSON.stringify(Trails));
+}
+
+// Create list of trail Intersections
+function buildIntersectionList() {
+  TrailIntersects = [];
+  intersectEL = document.querySelectorAll('.intersect');
+  intersectEL.forEach((intersect) => {
+    // Check for empty intersections and give a default;
+    if (intersect.value === '') {
+      intersect.value = 'none';
+    }
     // Build a index for trail intersections
     if (TrailIntersects.hasOwnProperty(intersect.value)) {
       // Check for trails that are loops
@@ -347,7 +395,13 @@ function collectIntersects() {
     }
   });
   localStorage.setItem('TrailsIntersects', JSON.stringify(TrailIntersects));
-  localStorage.setItem('Trails', JSON.stringify(Trails));
+}
+
+// Add intersections to trails and build an intersectionsList;
+function collectIntersects() {
+  addIntersectionsToTrails();
+  buildIntersectionList();
+  alert('Routes have been saved to local storage.');
 }
 
 // Build a list can keep track of the state of the trails while traversing them.

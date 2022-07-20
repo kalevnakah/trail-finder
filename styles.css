@@ -76,6 +76,24 @@ form {
 
 .trail div {
   border-left: 1px solid #000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.trail-title {
+  position: relative;
+}
+
+.delete {
+  background-color: #000;
+  color: #fff;
+  padding: 5px;
+  border-radius: 25%;
+  position: absolute;
+  left: 5px;
 }
 
 .trail input {

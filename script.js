@@ -413,6 +413,7 @@ function buildWalkedList(trails) {
   const walkedTrails = trails.map((trail) => ({
     id: trail.id,
     walked: 0,
+    activities: trail.activities[0],
   }));
   return walkedTrails;
 }
@@ -448,7 +449,10 @@ function findNextIntersection(connector, curTrail) {
 
 // Determine if all the trails have been walked
 function trailsWalked(walkedTrails) {
-  return walkedTrails.map((trail) => trail.walked).every((trail) => trail > 0);
+  const trailsOnly = walkedTrails.filter(
+    (track) => track.activities === 'hiking'
+  );
+  return trailsOnly.map((trail) => trail.walked).every((trail) => trail > 0);
 }
 
 // check if trail has been walked more than once

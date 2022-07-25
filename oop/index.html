@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Find Optimal Trail Route</h1>
+    <div class="upload">
+      <div class="upload-form">
+        <form method="post" enctype="multipart/form-data">
+          <input type="file" name="files[]" multiple />
+          <input type="submit" value="Upload File" name="submit" />
+        </form>
+      </div>
+      <div class="upload-sample-btn">
+        <button id="intersect-btn">Save Intersections</button>
+        <button id="load-sample-btn">Load Sample Trails</button>
+        <button id="delete-all-btn">Delete All Trails</button>
+      </div>
+    </div>
+    <div class="box">
+      <div id="trail-list" class="trails-list-head trail-rows">
+        <div>Name</div>
+        <div>Distance (Meters)</div>
+        <div>Time (MM:SS)</div>
+        <div>Speed (km/hr)</div>
+        <div>Trail Start</div>
+        <div>Trail End</div>
+      </div>
+      <div id="trails"></div>
+      <div id="trail-total" class="trail-total trail-rows">
+        <div>Total:</div>
+        <div id="total-dist"></div>
+        <div id="total-time" class="total-time"></div>
+        <div id="avg-speed" class="avg-speed"></div>
+      </div>
+    </div>
+    <button id="calculate-shortest-btn">Calculate Shortest Route</button>
+    <div class="box"></div>
+    <div id="routes"></div>
+    <!-- <script src="upload.js"></script> -->
+    <script src="script.js"></script>
+  </body>
+</html>

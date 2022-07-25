@@ -1,0 +1,23 @@
+Classes:
+
+Trail
+
+TrailGroup
+
+Route
+
+RouteGroup
+
+Walked Trails
+
+LocalStorage
+
+Events:
+Upload
+Save
+Load Sample
+Delete All
+Delete Trail
+Calculate Routes
+Export Route
+Export Trails

@@ -21,14 +21,6 @@ const deleteUrl = 'delete.php';
 const form = document.querySelector('form');
 const input = document.getElementsByName('files[]');
 
-// Extract the properties from the json files
-async function extractData(file) {
-  const res = await fetch(file);
-  const data = await res.json();
-
-  return data.features[0].properties;
-}
-
 // Get Trails from local storage
 async function recallAllTrails() {
   if (localStorage.getItem('Trails')) {
@@ -37,6 +29,14 @@ async function recallAllTrails() {
       trailsToDom(Trails[i]);
     }
   }
+}
+
+// Extract the properties from the json files
+async function extractData(file) {
+  const res = await fetch(file);
+  const data = await res.json();
+
+  return data.features[0].properties;
 }
 
 // Iterate through all the uploaded files and add to trails.

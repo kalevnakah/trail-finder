@@ -68,12 +68,15 @@ class Trails {
 
   addTrailsToDom() {
     this.total();
-    let trailBox = UI.createTable();
-    trailBox.appendChild(UI.createHeader);
+    console.log(this.trails);
+    const trailBox = UI.createTable();
+    const trailBody = UI.createBody();
     this.trails.forEach((trail) => {
-      trailBox.appendChild(UI.createATrail(trail));
+      trailBody.appendChild(UI.createATrail(trail));
     });
-    trailBox.appendChild(UI.createFooter(this.trail));
+    trailBox.appendChild(UI.createHeader());
+    trailBox.appendChild(trailBody);
+    trailBox.appendChild(UI.createFooter(this));
     return trailBox;
   }
 }
@@ -278,17 +281,8 @@ class Upload {
 //
 document.addEventListener('DOMContentLoaded', function () {
   const savedTrails = new Trails(Store.getTrails());
-  savedTrails.total();
-  console.log(savedTrails.trails);
-  const trailBox = UI.createTable();
-  const trailBody = UI.createBody();
-  savedTrails.trails.forEach((trail) => {
-    trailBody.appendChild(UI.createATrail(trail));
-  });
-  trailBox.appendChild(UI.createHeader());
-  trailBox.appendChild(trailBody);
-  trailBox.appendChild(UI.createFooter(savedTrails));
-  document.querySelector('#trailsList').appendChild(trailBox);
+  const trailsTable = savedTrails.addTrailsToDom();
+  document.querySelector('#trailsList').appendChild(trailsTable);
 });
 
 // Upload JSON or geoJSON Files Event Listener

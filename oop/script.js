@@ -29,8 +29,8 @@ class Trail {
 
 // Trails List Object
 class Trails {
-  constructor() {
-    this.trails = [];
+  constructor(trails = []) {
+    this.trails = trails;
     this.distance = 0;
     this.time = 0;
     this.avgSpeed = 0;
@@ -41,13 +41,9 @@ class Trails {
   }
 
   removeTrail(trailObj) {
-    if (this.hasTrail(trailObj)) {
+    if (trailObj in this.trails) {
       this.trails.splice(this.findTrailIndex(trailObj), 1);
     }
-  }
-
-  hasTrail(trailObj) {
-    return trailObj in this.trails;
   }
 
   findTrailIndex(trailObj) {
@@ -69,6 +65,17 @@ class Trails {
       this.avgSpeed = totalSpeed / this.trails.length;
     }
   }
+
+  addTrailsToDom() {
+    this.total();
+    let trailBox = UI.createTable();
+    trailBox.appendChild(UI.createHeader);
+    this.trails.forEach((trail) => {
+      trailBox.appendChild(UI.createATrail(trail));
+    });
+    trailBox.appendChild(UI.createFooter(this.trail));
+    return trailBox;
+  }
 }
 
 // Save data to local storage
@@ -76,7 +83,7 @@ class Store {
   static getTrails() {
     let storedTrails;
     if (localStorage.getItem('trails') === null) {
-      storedTrails = new Trails();
+      storedTrails = [];
     } else {
       storedTrails = JSON.parse(localStorage.getItem('trails'));
     }
@@ -95,7 +102,7 @@ class Store {
 
   static addTrails(trailObj) {
     const newTrails = Store.getTrails();
-    newTrails.trails.push(trailObj);
+    newTrails.push(trailObj);
     localStorage.setItem('trails', JSON.stringify(newTrails));
   }
 }
@@ -103,20 +110,20 @@ class Store {
 // UI Class
 class UI {
   static timeFormat(time) {
-    return `<p>${Math.floor(time / 60)}:${
-      time % 60 > 9 ? time % 60 : 0(time % 60)
-    }<\p>
+    return `${Math.floor(time / 60)}:${
+      time % 60 > 9 ? `${time % 60}` : `0${time % 60}`
+    }
     `;
   }
   static speedFormat(speed) {
-    return `<p>${(speed * (18 / 5)).toFixed(2)}<\p>`;
+    return `${(speed * (18 / 5)).toFixed(2)}`;
   }
   static distanceFormat(distance) {
-    return `<p>${distance.toFixed(2)}<\p>`;
+    return `${distance.toFixed(2)}`;
   }
   static luma(color) {
     // color can be a hx string or an array of RGB values 0-255
-    var rgb = typeof color === 'string' ? hexToRGBArray(color) : color;
+    var rgb = typeof color === 'string' ? UI.hexToRGBArray(color) : color;
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]; // SMPTE C, Rec. 709 weightings
   }
 
@@ -145,11 +152,10 @@ class UI {
     newTrail.style.color =
       UI.luma(trail.color.substring(1)) >= 165 ? '#000' : '#fff';
     newTrail.innerHTML = `
-      <td class="trail-title"><a class='delete'>X</a>
-      <p>${trail.title}</p></td>
-      <td>${UI.distanceFormat(trail.distance)}</td>
-      <td>${UI.timeFormat(trail.time)}</td>
-      <td>${UI.speedFormat(trail.speed)}</td>
+      <td class="trail-title"><a class='delete'>X</a><p>${trail.title}</p></td>
+      <td><p>${UI.distanceFormat(trail.distance)}</p></td>
+      <td><p>${UI.timeFormat(trail.time)}</p></td>
+      <td><p>${UI.speedFormat(trail.speed)}</p></td>
       <td><input data-id=${trail.id} class="intersect"></input></td>
       <td><input data-id=${trail.id} class="intersect"></input></td>
     `;
@@ -159,31 +165,41 @@ class UI {
   static createTable() {
     let table = document.createElement('table');
     table.classList.add('box');
-    return head;
+    return table;
   }
 
   static createHeader() {
     let head = document.createElement('thead');
-    head.classList.add('trails-list-head trail-rows');
+    head.classList.add('trails-list-head', 'trail-rows');
     head.innerHTML = `
-      <th>Name</th>
-      <th>Distance (Meters)</th>
-      <th>Time (MM:SS)</th>
-      <th>Speed (km/hr)</th>
-      <th>Trail Start</th>
-      <th>Trail End</th>
+      <th><p></p>Name</p></th>
+      <th><p>Distance (Meters)</p></th>
+      <th><p>Time (MM:SS)</p></th>
+      <th><p>Speed (km/hr)</p></th>
+      <th><p>Trail Start</p></th>
+      <th><p>Trail End</p></th>
     `;
     return head;
   }
 
-  static createFooter(trailList) {
+  static createBody() {
+    let body = document.createElement('tbody');
+    body.classList.add('trails', 'trail-rows');
+    return body;
+  }
+
+  static createFooter(
+    trailList = { trails: [], distance: 0, time: 0, speed: 0 }
+  ) {
     let foot = document.createElement('tfoot');
-    foot.classList.add('trail-total trail-row');
+    foot.classList.add('trail-total', 'trail-rows');
     foot.innerHTML = `
-      <td class= "total-trails>Total: Number of Trails ${trailList.trails.length}</td>
-      <td class="total-dist">${trailList.distance}</td>
-      <td class="total-time">${trailList.time}</td>
-      <td class="avg-speed">${trail.speed}</td>
+      <td><p>Total: Number of Trails ${trailList.trails.length}</p></td>
+      <td><p>${this.distanceFormat(trailList.distance)}</p></td>
+      <td><p>${this.timeFormat(trailList.time)}</p></td>
+      <td><p>${this.speedFormat(trailList.avgSpeed)}</p></td>
+      <td></td>
+      <td></td>
     `;
     return foot;
   }
@@ -198,6 +214,7 @@ class Upload {
   #trails = [];
   #fileList = [];
   #formData = new FormData();
+  #trailObj;
 
   async #collectFiles() {
     const files = document.querySelector('[type=file]').files;
@@ -224,7 +241,6 @@ class Upload {
       const trail = new Trail(data.features[0].properties);
       this.#trails.push(trail);
     }
-    return this.#trails;
   }
 
   async #deleteFiles() {
@@ -237,15 +253,43 @@ class Upload {
   async process() {
     await this.#collectFiles();
     await this.#fetchData();
-    const trails = await this.#fetchTrails();
-    trails.forEach((trail) => Store.addTrails(trail));
-    //trailsToDom(trail);
+    await this.#fetchTrails();
+    this.#trails.forEach((trail) => Store.addTrails(trail));
+    this.#trailObj = new Trails(this.#trails);
+    this.#trailObj.total();
+    this.#updateDomWithNewTrails();
     document.getElementsByName('files[]')[0].value = '';
     await this.#deleteFiles();
   }
+
+  #updateDomWithNewTrails() {
+    const trailBox = document.querySelector('#trailsList table');
+    const trailBody = trailBox.querySelector('.trails');
+    this.#trails.forEach((trail) => {
+      trailBody.appendChild(UI.createATrail(trail));
+    });
+    const trailFooter = trailBox.querySelector('tfoot');
+    trailBox.replaceChild(UI.createFooter(this.#trailObj), trailFooter);
+  }
 }
 
-// Event Listeners
+// Event Listener
+
+//
+document.addEventListener('DOMContentLoaded', function () {
+  const savedTrails = new Trails(Store.getTrails());
+  savedTrails.total();
+  console.log(savedTrails.trails);
+  const trailBox = UI.createTable();
+  const trailBody = UI.createBody();
+  savedTrails.trails.forEach((trail) => {
+    trailBody.appendChild(UI.createATrail(trail));
+  });
+  trailBox.appendChild(UI.createHeader());
+  trailBox.appendChild(trailBody);
+  trailBox.appendChild(UI.createFooter(savedTrails));
+  document.querySelector('#trailsList').appendChild(trailBox);
+});
 
 // Upload JSON or geoJSON Files Event Listener
 document.querySelector('form').addEventListener('submit', async (e) => {

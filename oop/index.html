@@ -7,7 +7,6 @@
     <title>Document</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
     <h1>Find Optimal Trail Route</h1>
     <div class="upload">
       <div class="upload-form">
@@ -22,23 +21,8 @@
         <button id="delete-all-btn">Delete All Trails</button>
       </div>
     </div>
-    <table class="box">
-      <thead id="trail-list" class="trails-list-head trail-rows">
-        <th>Name</th>
-        <th>Distance (Meters)</th>
-        <th>Time (MM:SS)</th>
-        <th>Speed (km/hr)</th>
-        <th>Trail Start</th>
-        <th>Trail End</th>
-      </thead>
-      <tr id="trails"></tr>
-      <tfoot id="trail-total" class="trail-total trail-rows">
-        <td>Total:</td>
-        <td id="total-dist"></td>
-        <td id="total-time" class="total-time"></td>
-        <td id="avg-speed" class="avg-speed"></td>
-      </tfoot>
-    </table>
+    <div id="trailsList">
+    </div>
     <button id="calculate-shortest-btn">Calculate Shortest Route</button>
     <div class="box"></div>
     <div id="routes"></div>

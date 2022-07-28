@@ -68,7 +68,6 @@ class Trails {
 
   addTrailsToDom() {
     this.total();
-    console.log(this.trails);
     const trailBox = UI.createTable();
     const trailBody = UI.createBody();
     this.trails.forEach((trail) => {
@@ -93,10 +92,10 @@ class Store {
     return storedTrails;
   }
 
-  static removeTrail(trailObj) {
+  static removeTrail(trailID) {
     const newTrails = Store.getTrails();
     newTrails.forEach((trail, index) => {
-      if (trail.id === trailObj.id) {
+      if (trail.id === trailID) {
         newTrails.splice(index, 1);
       }
     });
@@ -107,6 +106,10 @@ class Store {
     const newTrails = Store.getTrails();
     newTrails.push(trailObj);
     localStorage.setItem('trails', JSON.stringify(newTrails));
+  }
+
+  static clearStorage() {
+    localStorage.removeItem('trails');
   }
 }
 
@@ -144,8 +147,6 @@ class UI {
     for (var i = 0; i <= 2; i++) rgb[i] = parseInt(color.substr(i * 2, 2), 16);
     return rgb;
   }
-
-  static addTrails() {}
 
   static createATrail(trail) {
     const newTrail = document.createElement('tr');
@@ -207,18 +208,30 @@ class UI {
     return foot;
   }
 
-  static createATrailsList() {}
+  static updateFooterTotals() {
+    const trailBox = document.querySelector('#trailsList table');
+    const trailFooter = trailBox.querySelector('tfoot');
+    const trailsObj = new Trails(Store.getTrails());
+    trailsObj.total();
+    trailBox.replaceChild(this.createFooter(trailsObj), trailFooter);
+  }
+
+  static deleteTrail(el) {
+    if (el.classList.contains('delete')) {
+      el.parentElement.parentElement.remove();
+    }
+  }
 
   static createARoute() {}
 }
 
-// Upload Class
+// Upload files, extract object data, save data to local storage, process data, and delete files.
 class Upload {
   #trails = [];
   #fileList = [];
   #formData = new FormData();
-  #trailObj;
 
+  // Get the files from the upload input form.
   async #collectFiles() {
     const files = document.querySelector('[type=file]').files;
     for (let i = 0; i < files.length; i++) {
@@ -228,6 +241,7 @@ class Upload {
     }
   }
 
+  // Save json or geojson files as json files to server.
   async #fetchData() {
     await fetch('../upload.php', {
       method: 'POST',
@@ -235,6 +249,7 @@ class Upload {
     });
   }
 
+  // Get the json files and extract the properties to a trail object.
   async #fetchTrails() {
     for (let i = 0; i < this.#fileList.length; i++) {
       const splitFile = this.#fileList[i].split('.');
@@ -246,6 +261,7 @@ class Upload {
     }
   }
 
+  // Delete the files from the server
   async #deleteFiles() {
     await fetch('../delete.php', {
       method: 'POST',
@@ -253,32 +269,31 @@ class Upload {
     });
   }
 
+  // Perform all the functions above and more.
   async process() {
     await this.#collectFiles();
     await this.#fetchData();
     await this.#fetchTrails();
     this.#trails.forEach((trail) => Store.addTrails(trail));
-    this.#trailObj = new Trails(this.#trails);
-    this.#trailObj.total();
     this.#updateDomWithNewTrails();
     document.getElementsByName('files[]')[0].value = '';
     await this.#deleteFiles();
   }
 
+  // Add the uploaded trails to the dom.
   #updateDomWithNewTrails() {
     const trailBox = document.querySelector('#trailsList table');
     const trailBody = trailBox.querySelector('.trails');
     this.#trails.forEach((trail) => {
       trailBody.appendChild(UI.createATrail(trail));
     });
-    const trailFooter = trailBox.querySelector('tfoot');
-    trailBox.replaceChild(UI.createFooter(this.#trailObj), trailFooter);
+    UI.updateFooterTotals();
   }
 }
 
 // Event Listener
 
-//
+// Load trails from storage and display trails table.
 document.addEventListener('DOMContentLoaded', function () {
   const savedTrails = new Trails(Store.getTrails());
   const trailsTable = savedTrails.addTrailsToDom();
@@ -290,4 +305,22 @@ document.querySelector('form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const upload = new Upload();
   await upload.process();
+});
+
+// Clear all the trails
+document.querySelector('#delete-all-btn').addEventListener('click', () => {
+  Store.clearStorage();
+  location.reload();
+});
+
+// Delete individual trail
+document.querySelector('#trailsList').addEventListener('click', (e) => {
+  if (e.target.classList.contains('delete')) {
+    // Remove book from UI
+    UI.deleteTrail(e.target);
+    // Remove trail from storage
+    Store.removeTrail(e.target.parentElement.parentElement.id);
+    // Replace the footer with updated totals
+    UI.updateFooterTotals();
+  }
 });

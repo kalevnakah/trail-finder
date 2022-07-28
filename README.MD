@@ -36,6 +36,19 @@ The final filtering process that I settled on was:
 
 If route duplicate route was found it was spliced from the list and the next trail in the list would be compared. This would repeat until every trail had been compared with every remaining trail.
 
+I reused a lot of the code from the building the trails table to build and display the shortest routes.
+I also added a button for exporting the routes to csv, so one could permanently save the route and use it later. The export CSV uses pure vanilla Javascript. The functions was borrowed from a kind contributor to the forums on the web.
+
+The app was pretty user unfriendly. Add delete buttons on trails. A clear all button to reset the app. A Load Sample Button, so someone could test the app with pre loaded json files. And added button to save intersections and calculate the shortest routes.
+
+The final app is about 700 lines of pure functional programming. There are a lot of haters out there for OOP and claim that OOP takes more lines of code than pure functional. My next challenge is to refactor the app with OOP and see if I get less or more than 700 lines.
+
+OOP Refactoring.
+
+Started out with basic list of Objects: Trail, Trails, UI, Store, and Upload.
+
+I was able to recreate the basic functions of uploading, displaying and deleting trails with OOP. So, far I have noticed that I really like organizing code into classes. It makes it easy to see were there are redundancies. The code feels like it is a little more readable. I do see where things can feel a bit inefficient. There are times were I need to run simple function on some data, but first have to instantiate an object and then run the function on the object. It seems that if function was inline, the code would run quicker and use less memory.
+
 Preliminary Sudo Code
 
 // extract useful data from JSON

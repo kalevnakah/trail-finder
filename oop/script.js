@@ -111,6 +111,34 @@ class Store {
   static clearStorage() {
     localStorage.removeItem('trails');
   }
+
+  static saveIntersections() {
+    const intersectEL = document.querySelectorAll('.intersect');
+    const updateTrails = new Trails(Store.getTrails());
+    console.log(updateTrails);
+    let index = 0;
+    intersectEL.forEach((intersect) => {
+      // Step through the trails in storage.
+      let trailObj = updateTrails.trails[index];
+      // Check for empty intersections and give a default;
+      if (intersect.value === '') {
+        intersect.value = 'none';
+      }
+      // Check to make sure the ID's are the same
+      if (trailObj.id === intersect.dataset.id) {
+        // Check if it is a starting Intersection
+        if (intersect.classList.contains('start')) {
+          trailObj.start = intersect.value;
+          // Check if it is an ending Intersection and move to next trail.
+        } else if (intersect.classList.contains('end')) {
+          trailObj.end = intersect.value;
+          index++;
+        }
+      }
+    });
+    console.log(updateTrails);
+    localStorage.setItem('trails', JSON.stringify(updateTrails.trails));
+  }
 }
 
 // UI Class
@@ -160,8 +188,12 @@ class UI {
       <td><p>${UI.distanceFormat(trail.distance)}</p></td>
       <td><p>${UI.timeFormat(trail.time)}</p></td>
       <td><p>${UI.speedFormat(trail.speed)}</p></td>
-      <td><input data-id=${trail.id} class="intersect"></input></td>
-      <td><input data-id=${trail.id} class="intersect"></input></td>
+      <td><input data-id=${trail.id} class="intersect start" value=${
+      trail.start
+    }></input></td>
+      <td><input data-id=${trail.id} class="intersect end" value="${
+      trail.end
+    }"></input></td>
     `;
     return newTrail;
   }
@@ -324,3 +356,8 @@ document.querySelector('#trailsList').addEventListener('click', (e) => {
     UI.updateFooterTotals();
   }
 });
+
+// Save intersections
+document
+  .getElementById('intersect-btn')
+  .addEventListener('click', Store.saveIntersections);

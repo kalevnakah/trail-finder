@@ -1,8 +1,8 @@
 Classes:
 
-Trail
+x Trail
 
-TrailGroup
+x TrailGroup
 
 Route
 
@@ -10,14 +10,22 @@ RouteGroup
 
 Walked Trails
 
-LocalStorage
+x LocalStorage
+
+x UI
+
+x Upload
+
+x Store
+
+CalculateShortest
 
 Events:
-Upload
+x Upload
 Save
 Load Sample
-Delete All
-Delete Trail
+x Delete All
+x Delete Trail
 Calculate Routes
 Export Route
 Export Trails

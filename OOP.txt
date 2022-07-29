@@ -4,7 +4,7 @@ x Trail
 
 x TrailGroup
 
-Route
+x Route
 
 RouteGroup
 
@@ -22,7 +22,7 @@ x Store
 
 x Demo 
 
-CalculateShortest
+ CalculateShortest
 
 Events:
 x Upload

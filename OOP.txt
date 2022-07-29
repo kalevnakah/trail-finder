@@ -10,6 +10,8 @@ RouteGroup
 
 Walked Trails
 
+Intersections
+
 x LocalStorage
 
 x UI
@@ -22,7 +24,7 @@ CalculateShortest
 
 Events:
 x Upload
-Save
+x Save
 Load Sample
 x Delete All
 x Delete Trail

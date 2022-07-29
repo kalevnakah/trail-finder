@@ -115,7 +115,6 @@ class Store {
   static saveIntersections() {
     const intersectEL = document.querySelectorAll('.intersect');
     const updateTrails = new Trails(Store.getTrails());
-    console.log(updateTrails);
     let index = 0;
     intersectEL.forEach((intersect) => {
       // Step through the trails in storage.
@@ -136,7 +135,6 @@ class Store {
         }
       }
     });
-    console.log(updateTrails);
     localStorage.setItem('trails', JSON.stringify(updateTrails.trails));
   }
 }
@@ -196,6 +194,12 @@ class UI {
     }"></input></td>
     `;
     return newTrail;
+  }
+
+  static addTrailToList(trail) {
+    const trailBox = document.querySelector('#trailsList table');
+    const trailBody = trailBox.querySelector('.trails');
+    trailBody.appendChild(UI.createATrail(trail));
   }
 
   static createTable() {
@@ -293,6 +297,19 @@ class Upload {
     }
   }
 
+  // Get demo files and display them
+  async fetchDemo(num) {
+    for (let i = 0; i < num.length; i++) {
+      const file = `../trails/${i}.json`;
+      const res = await fetch(file);
+      const data = await res.json();
+      const trail = new Trail(data.features[0].properties);
+      this.#trails.push(trail);
+      this.#trails.forEach((trail) => Store.addTrails(trail));
+      this.#updateDomWithNewTrails();
+    }
+  }
+
   // Delete the files from the server
   async #deleteFiles() {
     await fetch('../delete.php', {
@@ -314,12 +331,70 @@ class Upload {
 
   // Add the uploaded trails to the dom.
   #updateDomWithNewTrails() {
-    const trailBox = document.querySelector('#trailsList table');
-    const trailBody = trailBox.querySelector('.trails');
     this.#trails.forEach((trail) => {
-      trailBody.appendChild(UI.createATrail(trail));
+      UI.addTrailToList(trail);
     });
     UI.updateFooterTotals();
+  }
+}
+
+// Add sample trails and intersections for testing and demo purposes
+class Demo {
+  static testIntersections = {
+    straightLoop: ['1', '2', '2', '3', '3', '1'],
+    triangle: ['1', '2', '1', '3', '1', '4', '4', '3'],
+    parallel: ['1', '2', '2', '3', '1', '2', '1', '2'],
+    parallelWithLoop: ['1', '2', '2', '3', '1', '2', '1', '1'],
+    twoTrailsParallel: ['1', '2', '1', '2'],
+    twoLoops: ['1', '1', '1', '1'],
+    oneTrail: ['1', '1'],
+    missingData: ['1', '2', '', '3', '3', '1'],
+    incomplete: ['1', '2', '3', '4', '5', '1'],
+    stickFigure: ['1', '1', '1', '2', '1', '3', '1', '4', '4', '5', '4', '6'],
+  };
+
+  static trails = [];
+  static intersectionList = [];
+
+  // Get demo files and display them
+  static async fetchDemo() {
+    let trailsLength = this.intersectionList.length / 2;
+    for (let i = 1; i <= trailsLength; i++) {
+      const file = `../trails/${i}.json`;
+      const res = await fetch(file);
+      const data = await res.json();
+      const trail = new Trail(data.features[0].properties);
+      Demo.trails.push(trail);
+      Store.addTrails(trail);
+      UI.addTrailToList(trail);
+    }
+  }
+
+  static giveRoutesTestingIntersections() {
+    const intersectEL = document.querySelectorAll('.intersect');
+    let index = 0;
+    intersectEL.forEach((intersect) => {
+      if (index < this.intersectionList.length) {
+        intersect.value = this.intersectionList[index];
+        index++;
+      }
+    });
+  }
+
+  // takes a parameter of either an array, key from testIntersections, or defaults to sickFigure.
+  static async addDemoTrails(intersections) {
+    console.log(intersections in this.testIntersections);
+    if (Array.isArray(intersections)) {
+      this.intersectionList = intersections;
+    } else if (intersections in this.testIntersections) {
+      this.intersectionList = this.testIntersections[intersections];
+    } else {
+      this.intersectionList = this.testIntersections['stickFigure'];
+    }
+    await this.fetchDemo();
+    UI.updateFooterTotals();
+    this.giveRoutesTestingIntersections();
+    Store.saveIntersections();
   }
 }
 
@@ -361,3 +436,8 @@ document.querySelector('#trailsList').addEventListener('click', (e) => {
 document
   .getElementById('intersect-btn')
   .addEventListener('click', Store.saveIntersections);
+
+// Load Demo trails.
+document.getElementById('load-sample-btn').addEventListener('click', () => {
+  Demo.addDemoTrails();
+});

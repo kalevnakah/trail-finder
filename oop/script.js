@@ -81,7 +81,7 @@ class Trails {
 }
 
 // Routes List. Similar to the trails list but it also has trail start and end information.
-class Routes extends Trails() {
+class Routes extends Trails {
   constructor() {
     this.start = '';
     this.end = '';
@@ -356,11 +356,13 @@ class Upload {
 // A state object that keeps track of whether or not all the required trails have been added to router.
 class AllTrailsWalked {
   static buildWalkedList(trails) {
-    const walked = trails.map((trail) => ({
-      id: trail.id,
-      walked: 0,
-      activities: trail.activities[0],
-    }));
+    const walked = {};
+    for (let trail in trails) {
+      walked[trails[trail].id] = {
+        walked: 0,
+        activities: trails[trail].activities,
+      };
+    }
     return walked;
   }
 }
@@ -394,8 +396,7 @@ class IntersectionIndex {
 
 // Calculate the shortest routes
 class calculateShortestRoute {
-  constructor(trails, walked, instersectitons) {
-    this.trails = trails;
+  constructor() {
     this.intersectionIndex;
     this.allPossibleRouters = [];
     this.shortestRoutes = [];
@@ -408,10 +409,15 @@ class calculateShortestRoute {
 
   // Determine if all the trails have been walked
   trailsWalked(walkedTrails) {
-    const trailsOnly = walkedTrails.filter(
-      (track) => track.activities === 'hiking'
-    );
-    return trailsOnly.map((trail) => trail.walked).every((trail) => trail > 0);
+    trailsOnly = [];
+    for (let trail in walkedTrails) {
+      if (walkedTrails[trail].activities === 'hiking') {
+        if (walkedTrails[trail].walked === 0) {
+          trailsOnly.push(trail);
+        }
+      }
+    }
+    return trailsOnly.length === 0;
   }
 
   traverseTrails(route, walkedTrails, intersection) {
@@ -431,6 +437,7 @@ class calculateShortestRoute {
           newRoute.trails.push(newTrail);
           // Mark the trail as walked
           walkedTrails[newTrail.id].walked += 1;
+          walkedTrails;
           // Call the recursive function
           this.traverseTrails(newRoute, walkedTrails, newTrail.end);
           // Undo stuff so the for loop will work on next iteration
@@ -452,9 +459,8 @@ class calculateShortestRoute {
   }
 
   start() {
-    this.trails = Store.getTrails();
     this.intersectionIndex = new IntersectionIndex();
-    this.intersectionIndex.buildIntersectionList(this.trails);
+    this.intersectionIndex.buildIntersectionList(Store.getTrails());
     this.startEveryWhere();
   }
 }

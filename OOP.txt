@@ -8,7 +8,7 @@ Route
 
 RouteGroup
 
-Walked Trails
+x Walked Trails
 
 Intersections
 
@@ -20,12 +20,14 @@ x Upload
 
 x Store
 
+x Demo 
+
 CalculateShortest
 
 Events:
 x Upload
 x Save
-Load Sample
+x Load Sample
 x Delete All
 x Delete Trail
 Calculate Routes

@@ -82,10 +82,11 @@ class Trails {
 
 // Routes List. Similar to the trails list but it also has trail start and end information.
 class Routes extends Trails {
-  constructor() {
+  constructor(trails = [], intersections = []) {
+    super(trails);
     this.start = '';
     this.end = '';
-    this.intersections = [];
+    this.intersections = intersections;
   }
 
   // Set the start and end intersections.
@@ -354,7 +355,7 @@ class Upload {
 }
 
 // A state object that keeps track of whether or not all the required trails have been added to router.
-class AllTrailsWalked {
+class RouteUtilities {
   static buildWalkedList(trails) {
     const walked = {};
     for (let trail in trails) {
@@ -365,51 +366,58 @@ class AllTrailsWalked {
     }
     return walked;
   }
-}
 
-// Creates an index of the intersections for determining what the next trail will be.
-class IntersectionIndex {
-  constructor() {
-    this.intersections = [];
-  }
-
-  buildIntersectionList(trails) {
+  // Creates an index of the intersections for determining what the next trail will be.
+  static buildIntersectionList(trails) {
+    const intersections = {};
     trails.forEach((trail) => {
       // Build a index for trail intersections
       [trail.start, trail.end].forEach((intersect) => {
-        if (this.intersections.hasOwnProperty(intersect)) {
+        if (intersections.hasOwnProperty(intersect)) {
           // Check for trails that are loops
-          if (!this.intersections[intersect].includes(trail.id)) {
-            this.intersections[intersect].push(trail.id);
+          if (!intersections[intersect].includes(trail)) {
+            intersections[intersect].push(trail);
           }
         } else {
-          this.intersections[intersect] = [trail.id];
+          intersections[intersect] = [trail];
         }
       });
     });
-    localStorage.setItem(
-      'IntersectionIndex',
-      JSON.stringify(this.intersections)
-    );
+    localStorage.setItem('IntersectionIndex', JSON.stringify(intersections));
+    return intersections;
   }
 }
 
 // Calculate the shortest routes
-class calculateShortestRoute {
+class CalculateShortestRoute {
   constructor() {
     this.intersectionIndex;
-    this.allPossibleRouters = [];
+    this.allPossibleRoutes = [];
     this.shortestRoutes = [];
+    this.trails = [];
   }
 
-  backtrackCheck(curTrail, walkedTrails) {
-    let trailObj = walkedTrails.find((trail) => trail.id === curTrail);
-    return trailObj.walked < 2;
+  whichRoutesAreShortest() {
+    return this.allPossibleRoutes.reduce((smallestRoutes, route) => {
+      // Add route to the accumulator and reset it if the route is shorter.
+      if (smallestRoutes.length === 0) {
+        smallestRoutes.push(route.distance);
+        smallestRoutes.push(route);
+      } else if (smallestRoutes[0] === route.distance) {
+        smallestRoutes.push(route);
+      } else if (smallestRoutes[0] > route.distance) {
+        smallestRoutes = [];
+        smallestRoutes.push(route.distance);
+        smallestRoutes.push(route);
+      }
+      // Returns: Array of shortest routes
+      return smallestRoutes;
+    }, []);
   }
 
   // Determine if all the trails have been walked
   trailsWalked(walkedTrails) {
-    trailsOnly = [];
+    const trailsOnly = [];
     for (let trail in walkedTrails) {
       if (walkedTrails[trail].activities === 'hiking') {
         if (walkedTrails[trail].walked === 0) {
@@ -421,47 +429,57 @@ class calculateShortestRoute {
   }
 
   traverseTrails(route, walkedTrails, intersection) {
-    const newRoute = route;
-    newRoute.intersections.push(intersection);
+    route.intersections.push(intersection);
     // Stop recursive function if all trails have been walked
     if (this.trailsWalked(walkedTrails)) {
-      newRoute.setStartAndEnd();
-      return this.allPossibleRoutes.push([...newRoute]);
+      const finaleRoute = new Routes(route.trails, route.intersections);
+      finaleRoute.setStartAndEnd();
+      finaleRoute.total();
+      this.allPossibleRoutes.push(finaleRoute);
     } else {
       //loop through every trail at current intersection
       let futureTrails = this.intersectionIndex[intersection];
       futureTrails.forEach((newTrail) => {
-        // Stop infinite loop. Cannot walk same trail more than twice
-        if (this.backtrackCheck(newTrail, walkedTrails)) {
-          // add trail to newRoute
-          newRoute.trails.push(newTrail);
+        // Stop infinite loop. Cannot walk same trail more than twice.
+        if (walkedTrails[newTrail.id].walked < 2) {
+          // Find the other end of the trail.
+          if (
+            newTrail.end === intersection &&
+            newTrail.start !== newTrail.end
+          ) {
+            newTrail.start = newTrail.end;
+            newTrail.end = intersection;
+          }
+          // add trail to route
+          route.trails.push(newTrail);
           // Mark the trail as walked
           walkedTrails[newTrail.id].walked += 1;
-          walkedTrails;
           // Call the recursive function
-          this.traverseTrails(newRoute, walkedTrails, newTrail.end);
+          this.traverseTrails(route, walkedTrails, newTrail.end);
           // Undo stuff so the for loop will work on next iteration
           walkedTrails[newTrail.id].walked -= 1;
-          newRoute.trails.pop();
+          route.trails.pop();
         }
       });
     }
   }
 
   startEveryWhere() {
+    this.allPossibleRoutes = [];
     for (let intersect in this.intersectionIndex) {
       if (this.intersectionIndex.hasOwnProperty(intersect)) {
-        let walked = new AllTrailsWalked.buildWalkedList(this.trails);
+        let walked = RouteUtilities.buildWalkedList(this.trails);
         let routes = new Routes();
-        traverseTrails(routes, walked, intersect);
+        this.traverseTrails(routes, walked, intersect);
       }
     }
   }
 
   start() {
-    this.intersectionIndex = new IntersectionIndex();
-    this.intersectionIndex.buildIntersectionList(Store.getTrails());
+    this.trails = Store.getTrails();
+    this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
     this.startEveryWhere();
+    this.shortestRoutes = this.whichRoutesAreShortest();
   }
 }
 
@@ -566,5 +584,5 @@ document
 
 // Load Demo trails.
 document.getElementById('load-sample-btn').addEventListener('click', () => {
-  Demo.addDemoTrails();
+  Demo.addDemoTrails('twoTrailsParallel');
 });

@@ -312,9 +312,13 @@ class UI {
   static updateFooterTotals() {
     const trailBox = document.querySelector('#trailsList table');
     const trailFooter = trailBox.querySelector('tfoot');
+    const trailCSVBtn = document.querySelector('#trailsList .csv');
     const trailsObj = new Trails(Store.getTrails());
     trailsObj.total();
+    console.log(trailsObj);
+    const newCSVBtn = trailsObj.addCSVBtn('Save Trails To CSV');
     trailBox.replaceChild(this.createFooter(trailsObj), trailFooter);
+    trailCSVBtn.parentNode.replaceChild(newCSVBtn, trailCSVBtn);
   }
 
   static deleteTrail(el) {
@@ -325,6 +329,7 @@ class UI {
 
   static csvExportBtn(title, routeExport) {
     const newDownloadBtn = document.createElement('button');
+    newDownloadBtn.classList.add('csv');
     newDownloadBtn.innerHTML = title;
     newDownloadBtn.onclick = function () {
       RouteUtilities.exportToCsv(title, routeExport);

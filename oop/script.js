@@ -66,17 +66,45 @@ class Trails {
     }
   }
 
-  addTrailsToDom() {
+  addTrailsToDom(isARoute = false) {
     this.total();
     const trailBox = UI.createTable();
     const trailBody = UI.createBody();
     this.trails.forEach((trail) => {
-      trailBody.appendChild(UI.createATrail(trail));
+      trailBody.appendChild(UI.createATrail(trail, isARoute));
     });
     trailBox.appendChild(UI.createHeader());
     trailBox.appendChild(trailBody);
     trailBox.appendChild(UI.createFooter(this));
     return trailBox;
+  }
+
+  addCSVBtn(title) {
+    const routeExport = [
+      [
+        'Order',
+        'Title',
+        'Distance(Meters)',
+        'Time(Secs)',
+        'Speed(km/hr)',
+        'Trail Start',
+        'Trail End',
+      ],
+    ];
+    let trailNum = 1;
+    this.trails.forEach((trail) => {
+      routeExport.push([
+        trailNum,
+        trail.title,
+        trail.distance,
+        trail.time,
+        trail.speed,
+        trail.start,
+        trail.end,
+      ]);
+      trailNum++;
+    });
+    return UI.csvExportBtn(title, routeExport);
   }
 }
 
@@ -93,6 +121,16 @@ class Routes extends Trails {
   setStartAndEnd() {
     this.start = this.intersections[0];
     this.end = this.intersections[this.intersections.length - 1];
+  }
+
+  addRouteToDom(routeNumber) {
+    routeNumber = parseInt(routeNumber) + 1;
+    const routeDiv = document.querySelector('#routes');
+    let newHeader = document.createElement('h2');
+    newHeader.innerHTML = `Route ${routeNumber}`;
+    routeDiv.appendChild(newHeader);
+    routeDiv.appendChild(this.addTrailsToDom(true));
+    routeDiv.appendChild(this.addCSVBtn(`Save Route ${routeNumber} To CSV`));
   }
 }
 
@@ -190,25 +228,36 @@ class UI {
     return rgb;
   }
 
-  static createATrail(trail) {
+  static createATrail(trail, isARoute = false) {
     const newTrail = document.createElement('tr');
     newTrail.classList.add('trail-rows', 'trail');
     newTrail.id = trail.id;
     newTrail.style.background = trail.color;
     newTrail.style.color =
       UI.luma(trail.color.substring(1)) >= 165 ? '#000' : '#fff';
-    newTrail.innerHTML = `
+    if (isARoute) {
+      newTrail.innerHTML = `
+      <td class="trail-title"><p>${trail.title}</p></td>
+      <td><p>${UI.distanceFormat(trail.distance)}</p></td>
+      <td><p>${UI.timeFormat(trail.time)}</p></td>
+      <td><p>${UI.speedFormat(trail.speed)}</p></td>
+      <td><p>${trail.start}</p></td>
+      <td><p>${trail.end}</p></td>
+    `;
+    } else {
+      newTrail.innerHTML = `
       <td class="trail-title"><a class='delete'>X</a><p>${trail.title}</p></td>
       <td><p>${UI.distanceFormat(trail.distance)}</p></td>
       <td><p>${UI.timeFormat(trail.time)}</p></td>
       <td><p>${UI.speedFormat(trail.speed)}</p></td>
       <td><input data-id=${trail.id} class="intersect start" value=${
-      trail.start
-    }></input></td>
+        trail.start
+      }></input></td>
       <td><input data-id=${trail.id} class="intersect end" value="${
-      trail.end
-    }"></input></td>
+        trail.end
+      }"></input></td>
     `;
+    }
     return newTrail;
   }
 
@@ -274,7 +323,14 @@ class UI {
     }
   }
 
-  static createARoute() {}
+  static csvExportBtn(title, routeExport) {
+    const newDownloadBtn = document.createElement('button');
+    newDownloadBtn.innerHTML = title;
+    newDownloadBtn.onclick = function () {
+      RouteUtilities.exportToCsv(title, routeExport);
+    };
+    return newDownloadBtn;
+  }
 }
 
 // Upload files, extract object data, save data to local storage, process data, and delete files.
@@ -386,6 +442,57 @@ class RouteUtilities {
     localStorage.setItem('IntersectionIndex', JSON.stringify(intersections));
     return intersections;
   }
+
+  static compareShifted(route1, route2) {
+    for (let i = 0; i < route1.length; i++) {
+      route2.unshift(route2.pop());
+      if (route1.every((trail, index) => trail === route2[index])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static exportToCsv(filename, rows) {
+    var processRow = function (row) {
+      var finalVal = '';
+      for (var j = 0; j < row.length; j++) {
+        var innerValue = row[j] === null ? '' : row[j].toString();
+        if (row[j] instanceof Date) {
+          innerValue = row[j].toLocaleString();
+        }
+        var result = innerValue.replace(/"/g, '""');
+        if (result.search(/("|,|\n)/g) >= 0) result = '"' + result + '"';
+        if (j > 0) finalVal += ',';
+        finalVal += result;
+      }
+      return finalVal + '\n';
+    };
+
+    var csvFile = '';
+    for (var i = 0; i < rows.length; i++) {
+      csvFile += processRow(rows[i]);
+    }
+
+    var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) {
+      // IE 10+
+      navigator.msSaveBlob(blob, filename);
+    } else {
+      var link = document.createElement('a');
+      if (link.download !== undefined) {
+        // feature detection
+        // Browsers that support HTML5 download attribute
+        var url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  }
 }
 
 // Calculate the shortest routes
@@ -397,22 +504,73 @@ class CalculateShortestRoute {
     this.trails = [];
   }
 
-  whichRoutesAreShortest() {
-    return this.allPossibleRoutes.reduce((smallestRoutes, route) => {
-      // Add route to the accumulator and reset it if the route is shorter.
-      if (smallestRoutes.length === 0) {
-        smallestRoutes.push(route.distance);
-        smallestRoutes.push(route);
-      } else if (smallestRoutes[0] === route.distance) {
-        smallestRoutes.push(route);
-      } else if (smallestRoutes[0] > route.distance) {
-        smallestRoutes = [];
-        smallestRoutes.push(route.distance);
-        smallestRoutes.push(route);
+  filterIdenticalRoutes(arrRoutes) {
+    // Loop through and set route 1
+    for (let i = 0; i < arrRoutes.length - 1; i++) {
+      // Loop through and set route 2
+      for (let j = 1; j < arrRoutes.length; j++) {
+        // Routes that have the same number of trails.
+        if (arrRoutes[i].trails.length === arrRoutes[j].trails.length) {
+          // Create and compare a flipped version of the route being compared
+          const flippedRoute = [...arrRoutes[j].trails].reverse();
+          // Check if route1 is equal to route2 flipped.
+          if (
+            arrRoutes[i].trails.every(
+              (element, index) => element === flippedRoute[index]
+            )
+          ) {
+            arrRoutes.splice(j, 1);
+            j--;
+            // Check if the routes is a circle. If yes then it could be shifted
+          } else if (
+            arrRoutes[i].start === arrRoutes[i].end &&
+            arrRoutes[j].start === arrRoutes[j].end
+          ) {
+            // Compare routes with one route being shifted for every trail in the route
+            if (
+              RouteUtilities.compareShifted(
+                arrRoutes[i].trails,
+                arrRoutes[j].trails
+              )
+            ) {
+              arrRoutes.splice(j, 1);
+              j--;
+              // Compare routes after flipping and being shifted for every trail in the route
+            } else if (
+              RouteUtilities.compareShifted(arrRoutes[i].trails, flippedRoute)
+            ) {
+              arrRoutes.splice(j, 1);
+              j--;
+            }
+          }
+        }
       }
-      // Returns: Array of shortest routes
-      return smallestRoutes;
-    }, []);
+    }
+    // Return all unique routes
+    return [...arrRoutes];
+  }
+
+  whichRoutesAreShortest() {
+    const shortestRoutes = this.allPossibleRoutes.reduce(
+      (smallestRoutes, route) => {
+        // Add route to the accumulator and reset it if the route is shorter.
+        if (smallestRoutes.length === 0) {
+          smallestRoutes.push(route.distance);
+          smallestRoutes.push(route);
+        } else if (smallestRoutes[0] === route.distance) {
+          smallestRoutes.push(route);
+        } else if (smallestRoutes[0] > route.distance) {
+          smallestRoutes = [];
+          smallestRoutes.push(route.distance);
+          smallestRoutes.push(route);
+        }
+        // Returns: Array of shortest routes
+        return smallestRoutes;
+      },
+      []
+    );
+    shortestRoutes.shift();
+    this.shortestRoutes = shortestRoutes;
   }
 
   // Determine if all the trails have been walked
@@ -432,7 +590,10 @@ class CalculateShortestRoute {
     route.intersections.push(intersection);
     // Stop recursive function if all trails have been walked
     if (this.trailsWalked(walkedTrails)) {
-      const finaleRoute = new Routes(route.trails, route.intersections);
+      const finaleRoute = new Routes(
+        [...route.trails],
+        [...route.intersections]
+      );
       finaleRoute.setStartAndEnd();
       finaleRoute.total();
       this.allPossibleRoutes.push(finaleRoute);
@@ -447,8 +608,8 @@ class CalculateShortestRoute {
             newTrail.end === intersection &&
             newTrail.start !== newTrail.end
           ) {
-            newTrail.start = newTrail.end;
-            newTrail.end = intersection;
+            newTrail.end = newTrail.start;
+            newTrail.start = intersection;
           }
           // add trail to route
           route.trails.push(newTrail);
@@ -459,6 +620,7 @@ class CalculateShortestRoute {
           // Undo stuff so the for loop will work on next iteration
           walkedTrails[newTrail.id].walked -= 1;
           route.trails.pop();
+          route.intersections.pop();
         }
       });
     }
@@ -476,10 +638,20 @@ class CalculateShortestRoute {
   }
 
   start() {
+    let startTime = new Date();
     this.trails = Store.getTrails();
     this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
     this.startEveryWhere();
-    this.shortestRoutes = this.whichRoutesAreShortest();
+    this.whichRoutesAreShortest();
+    this.shortestRoutes = this.filterIdenticalRoutes(this.shortestRoutes);
+    document.querySelector('#routes').innerHTML = '';
+    this.shortestRoutes.forEach((route, index) => {
+      route.addRouteToDom(index);
+    });
+    //UI.createRoutes(this.shortestRoutes);
+    let endTime = new Date();
+    let timeDiff = endTime - startTime;
+    console.log(timeDiff);
   }
 }
 
@@ -528,7 +700,6 @@ class Demo {
 
   // takes a parameter of either an array, key from testIntersections, or defaults to sickFigure.
   static async addDemoTrails(intersections) {
-    console.log(intersections in this.testIntersections);
     if (Array.isArray(intersections)) {
       this.intersectionList = intersections;
     } else if (intersections in this.testIntersections) {
@@ -549,7 +720,9 @@ class Demo {
 document.addEventListener('DOMContentLoaded', function () {
   const savedTrails = new Trails(Store.getTrails());
   const trailsTable = savedTrails.addTrailsToDom();
-  document.querySelector('#trailsList').appendChild(trailsTable);
+  trailsList = document.querySelector('#trailsList');
+  trailsList.appendChild(trailsTable);
+  trailsList.appendChild(savedTrails.addCSVBtn(`Save Trails To CSV`));
 });
 
 // Upload JSON or geoJSON Files Event Listener
@@ -583,6 +756,16 @@ document
   .addEventListener('click', Store.saveIntersections);
 
 // Load Demo trails.
+// Params for "addDemoTrails": straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 document.getElementById('load-sample-btn').addEventListener('click', () => {
-  Demo.addDemoTrails('twoTrailsParallel');
+  Demo.addDemoTrails('stickFigure');
 });
+//     straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
+
+// Calculate the shortest route
+document
+  .getElementById('calculate-shortest-btn')
+  .addEventListener('click', () => {
+    const shortestRoutes = new CalculateShortestRoute();
+    shortestRoutes.start();
+  });

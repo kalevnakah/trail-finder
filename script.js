@@ -293,15 +293,17 @@ function deleteTrail(trailEl, trailId) {
   routeTotal(Trails);
 }
 
+// Load Demo trails.
+// Params for "addDemoTrails": straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 async function loadSampleTrails() {
-  numberOfFiles = 6;
+  numberOfFiles = 7;
   files = [];
   for (i = 1; i < numberOfFiles; i++) {
     files.push(`${i}.json`);
   }
   await fetchTrails(files);
   routeTotal(Trails);
-  giveRoutesTestingIntersections(StickFigure);
+  giveRoutesTestingIntersections(stickFigure);
   collectIntersects();
 }
 
@@ -325,6 +327,7 @@ function recallIntersections() {
 }
 
 function calculateShortestRoute() {
+  let startTime = new Date();
   allPossibleRoutes = [];
   routesEl.innerHTML = '';
   collectIntersects();
@@ -336,6 +339,9 @@ function calculateShortestRoute() {
   } else {
     routesEl.innerHTML = `<h1>No Possible Routes Found</h1>`;
   }
+  let endTime = new Date();
+  let timeDiff = endTime - startTime;
+  console.log(timeDiff);
 }
 
 // Initialize the program and fetch the js
@@ -710,9 +716,9 @@ const parallelWithLoop = ['1', '2', '2', '3', '1', '2', '1', '1'];
 const twoTrailsParallel = ['1', '2', '1', '2'];
 const twoLoops = ['1', '1', '1', '1'];
 const oneTrail = ['1', '1'];
-const MissingData = ['1', '2', '', '3', '3', '1'];
-const Incomplete = ['1', '2', '3', '4', '5', '1'];
-const StickFigure = [
+const missingData = ['1', '2', '', '3', '3', '1'];
+const incomplete = ['1', '2', '3', '4', '5', '1'];
+const stickFigure = [
   '1',
   '1',
   '1',

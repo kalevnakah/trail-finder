@@ -328,9 +328,11 @@ function recallIntersections() {
 
 function calculateShortestRoute() {
   let startTime = new Date();
+  console.log(startTime);
   allPossibleRoutes = [];
   routesEl.innerHTML = '';
   collectIntersects();
+  console.log('Collected all the Intersections');
   startEveryWhere();
   if (allPossibleRoutes.length !== 0) {
     const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
@@ -427,6 +429,7 @@ function buildWalkedList(trails) {
 // Get possible routes from different starting points
 function startEveryWhere() {
   for (let intersect in TrailIntersects) {
+    console.log(`starting intersection: ${intersect}`);
     if (TrailIntersects.hasOwnProperty(intersect)) {
       traverseTrails([], buildWalkedList(Trails), intersect);
     }
@@ -458,7 +461,10 @@ function trailsWalked(walkedTrails) {
   const trailsOnly = walkedTrails.filter(
     (track) => track.activities === 'hiking'
   );
-  return trailsOnly.map((trail) => trail.walked).every((trail) => trail > 0);
+  const trailsOnlyMap = trailsOnly.map((trail) => trail.walked);
+  const trailsOnlyEvery = trailsOnlyMap.every((trail) => trail > 0);
+  debugger;
+  return trailsOnlyEvery;
 }
 
 // check if trail has been walked more than once
@@ -467,11 +473,17 @@ function backtrackCheck(curTrail, walkedTrails) {
   return trailObj.walked < 2;
 }
 
+let traverseCount = 0;
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
+  debugger;
   const newRoute = route;
+  console.log(traverseCount++);
   // Stop recursive function if all trails have been walked
+  console.log(trailsWalked(walkedTrails));
   if (trailsWalked(walkedTrails)) {
+    debugger;
+    console.log(`found a route: ${newRoute}`);
     return allPossibleRoutes.push([...newRoute]);
   } else {
     //loop through every trail at current intersection

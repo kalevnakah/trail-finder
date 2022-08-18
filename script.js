@@ -463,7 +463,6 @@ function trailsWalked(walkedTrails) {
   );
   const trailsOnlyMap = trailsOnly.map((trail) => trail.walked);
   const trailsOnlyEvery = trailsOnlyMap.every((trail) => trail > 0);
-  debugger;
   return trailsOnlyEvery;
 }
 
@@ -476,13 +475,13 @@ function backtrackCheck(curTrail, walkedTrails) {
 let traverseCount = 0;
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
-  debugger;
+  // if (traverseCount > 74) {
+  //   debugger;
+  // }
   const newRoute = route;
   console.log(traverseCount++);
   // Stop recursive function if all trails have been walked
-  console.log(trailsWalked(walkedTrails));
   if (trailsWalked(walkedTrails)) {
-    debugger;
     console.log(`found a route: ${newRoute}`);
     return allPossibleRoutes.push([...newRoute]);
   } else {
@@ -492,12 +491,15 @@ function traverseTrails(route, walkedTrails, intersection) {
       // Stop infinite loop. Cannot walk same trail more than twice
       if (backtrackCheck(newTrail, walkedTrails)) {
         // add trail to newRoute
+        let trailObj = Trails.find((trail) => trail.id === newTrail);
+        let trailName = trailObj.title;
         newRoute.push(newTrail);
         // Grab the intersection on the other end of the trail
         let newIntersect = findNextIntersection(intersection, newTrail);
         // Mark the trail as walked
         let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
         // Call the recursive function
+        console.log(trailName + ' ' + newIntersect);
         traverseTrails(newRoute, newWalkedTrails, newIntersect);
         // Undo stuff so the for loop will work on next iteration
         removeWalkedTrail(newTrail, walkedTrails);

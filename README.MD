@@ -51,7 +51,7 @@ I was able to recreate the basic functions of uploading, displaying and deleting
 
 After testing the program with some real world trails. IE: 100-150 trails and roads. I found that my recursive function was looping through thousands of times and it was crashing. There is a problem with the logic or there is not enough power to actual calculate the route. To complete 14 trails, recursive function ran 55,433 times. This seems a bit access, but when you look at two parallel trails can have 8 different routes for a total of 32 recursions. These numbers grow exponentially as the number trails increases and especially when intersections have more than two trails in common.
 
-One potential solution is change the program so you have to pick a starting intersection instead of the program checking every route from every intersection. Another solution would be to change the rules to how a route is found, but I have not been able to come up with a simpler or smarter set.
+One potential solution is change the program so you have to pick a starting intersection instead of the program checking every route from every intersection. Another solution would be to change the rules to how a route is found, but I have not been able to come up with a simpler or smarter set of rules. One rule might be to abort any route that contains more than 1.5 times the original set of trails.
 
 Preliminary Sudo Code
 

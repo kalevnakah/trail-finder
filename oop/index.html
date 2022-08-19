@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
     <h1>Find Optimal Trail Route</h1>
-    <div class="upload">
+    <div class="btn-box">
       <div class="upload-form">
         <form method="post" enctype="multipart/form-data">
           <input type="file" name="files[]" multiple />
@@ -19,11 +19,19 @@
         <button id="intersect-btn">Save Intersections</button>
         <button id="load-sample-btn">Load Sample Trails</button>
         <button id="delete-all-btn">Delete All Trails</button>
-      </div>
+      </div>calculate-shortest-start-btn
     </div>
     <div id="trailsList">
     </div>
-    <button id="calculate-shortest-btn">Calculate Shortest Route</button>
+    <div class="btn-box">
+      <div>
+        <input id="startingPoint" type="text" />
+        <button id="">
+          Shortest Route from Intersection
+        </button>
+      </div>
+      <button id="calculate-shortest-btn">Calculate Shortest Route</button>
+    </div>
     <div class="box"></div>
     <div id="routes"></div>
     <!-- <script src="upload.js"></script> -->

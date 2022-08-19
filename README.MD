@@ -53,6 +53,8 @@ After testing the program with some real world trails. IE: 100-150 trails and ro
 
 One potential solution is change the program so you have to pick a starting intersection instead of the program checking every route from every intersection. Another solution would be to change the rules to how a route is found, but I have not been able to come up with a simpler or smarter set of rules. One rule might be to abort any route that contains more than 1.5 times the original set of trails.
 
+I created an option to start at one intersection and put a limiter of 1.1 times the number of trails. On a sample size of 14 trails this drastically reduced the calculation time and cut down on the number of recursions. But after more trails to the route I ran into the same problem of the program crashing around a million recursions. Either their needs to be yet a more efficient way or more computing power.
+
 Preliminary Sudo Code
 
 // extract useful data from JSON

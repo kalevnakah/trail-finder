@@ -315,7 +315,6 @@ class UI {
     const trailCSVBtn = document.querySelector('#trailsList .csv');
     const trailsObj = new Trails(Store.getTrails());
     trailsObj.total();
-    console.log(trailsObj);
     const newCSVBtn = trailsObj.addCSVBtn('Save Trails To CSV');
     trailBox.replaceChild(this.createFooter(trailsObj), trailFooter);
     trailCSVBtn.parentNode.replaceChild(newCSVBtn, trailCSVBtn);
@@ -507,6 +506,7 @@ class CalculateShortestRoute {
     this.allPossibleRoutes = [];
     this.shortestRoutes = [];
     this.trails = [];
+    this.counter = 0;
   }
 
   filterIdenticalRoutes(arrRoutes) {
@@ -592,6 +592,7 @@ class CalculateShortestRoute {
   }
 
   traverseTrails(route, walkedTrails, intersection) {
+    console.log(this.counter++);
     route.intersections.push(intersection);
     // Stop recursive function if all trails have been walked
     if (this.trailsWalked(walkedTrails)) {
@@ -604,30 +605,32 @@ class CalculateShortestRoute {
       this.allPossibleRoutes.push(finaleRoute);
     } else {
       //loop through every trail at current intersection
-      let futureTrails = this.intersectionIndex[intersection];
-      futureTrails.forEach((newTrail) => {
-        // Stop infinite loop. Cannot walk same trail more than twice.
-        if (walkedTrails[newTrail.id].walked < 2) {
-          // Find the other end of the trail.
-          if (
-            newTrail.end === intersection &&
-            newTrail.start !== newTrail.end
-          ) {
-            newTrail.end = newTrail.start;
-            newTrail.start = intersection;
+      if (route.trails.length < 1.2 * this.trails.length) {
+        let futureTrails = this.intersectionIndex[intersection];
+        futureTrails.forEach((newTrail) => {
+          // Stop infinite loop. Cannot walk same trail more than twice.
+          if (walkedTrails[newTrail.id].walked < 2) {
+            // Find the other end of the trail.
+            if (
+              newTrail.end === intersection &&
+              newTrail.start !== newTrail.end
+            ) {
+              newTrail.end = newTrail.start;
+              newTrail.start = intersection;
+            }
+            // add trail to route
+            route.trails.push(newTrail);
+            // Mark the trail as walked
+            walkedTrails[newTrail.id].walked += 1;
+            // Call the recursive function
+            this.traverseTrails(route, walkedTrails, newTrail.end);
+            // Undo stuff so the for loop will work on next iteration
+            walkedTrails[newTrail.id].walked -= 1;
+            route.trails.pop();
+            route.intersections.pop();
           }
-          // add trail to route
-          route.trails.push(newTrail);
-          // Mark the trail as walked
-          walkedTrails[newTrail.id].walked += 1;
-          // Call the recursive function
-          this.traverseTrails(route, walkedTrails, newTrail.end);
-          // Undo stuff so the for loop will work on next iteration
-          walkedTrails[newTrail.id].walked -= 1;
-          route.trails.pop();
-          route.intersections.pop();
-        }
-      });
+        });
+      }
     }
   }
 
@@ -643,10 +646,32 @@ class CalculateShortestRoute {
   }
 
   start() {
+    this.counter = 0;
     let startTime = new Date();
     this.trails = Store.getTrails();
     this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
     this.startEveryWhere();
+    this.whichRoutesAreShortest();
+    this.shortestRoutes = this.filterIdenticalRoutes(this.shortestRoutes);
+    document.querySelector('#routes').innerHTML = '';
+    this.shortestRoutes.forEach((route, index) => {
+      route.addRouteToDom(index);
+    });
+    //UI.createRoutes(this.shortestRoutes);
+    let endTime = new Date();
+    let timeDiff = endTime - startTime;
+    console.log(timeDiff);
+  }
+
+  startFrom() {
+    this.counter = 0;
+    let startTime = new Date();
+    this.trails = Store.getTrails();
+    this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
+    let walked = RouteUtilities.buildWalkedList(this.trails);
+    let routes = new Routes();
+    let intersect = document.getElementById('startingPoint').value;
+    this.traverseTrails(routes, walked, intersect);
     this.whichRoutesAreShortest();
     this.shortestRoutes = this.filterIdenticalRoutes(this.shortestRoutes);
     document.querySelector('#routes').innerHTML = '';
@@ -770,6 +795,14 @@ document.getElementById('load-sample-btn').addEventListener('click', () => {
 // Calculate the shortest route
 document
   .getElementById('calculate-shortest-btn')
+  .addEventListener('click', () => {
+    const shortestRoutes = new CalculateShortestRoute();
+    shortestRoutes.start();
+  });
+
+// Calculate the shortest route starting from a given point
+document
+  .getElementById('calculate-shortest-start-btn')
   .addEventListener('click', () => {
     const shortestRoutes = new CalculateShortestRoute();
     shortestRoutes.start();

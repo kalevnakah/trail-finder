@@ -8,6 +8,10 @@ const totalTimeEl = document.getElementById('total-time');
 const avgSpeedEl = document.getElementById('avg-speed');
 const btnDeleteAll = document.getElementById('delete-all-btn');
 const btnCalculateShortest = document.getElementById('calculate-shortest-btn');
+const btnShortestIntersection = document.getElementById(
+  'calculate-shortest-start-btn'
+);
+const inputShortestIntersection = document.getElementById('startingPoint');
 
 // Global Variables
 let intersectEL = [];
@@ -326,13 +330,13 @@ function recallIntersections() {
   }
 }
 
+//find the shortest route from all intersections.
 function calculateShortestRoute() {
   let startTime = new Date();
   console.log(startTime);
   allPossibleRoutes = [];
   routesEl.innerHTML = '';
   collectIntersects();
-  console.log('Collected all the Intersections');
   startEveryWhere();
   if (allPossibleRoutes.length !== 0) {
     const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
@@ -343,7 +347,28 @@ function calculateShortestRoute() {
   }
   let endTime = new Date();
   let timeDiff = endTime - startTime;
-  console.log(timeDiff);
+  console.log(`time to beat: ${timeDiff}`);
+}
+
+//find the shortest route from a single starting point
+function calculateShortestRouteFromStart() {
+  let startTime = new Date();
+  let intersect = inputShortestIntersection.value;
+  console.log(startTime);
+  allPossibleRoutes = [];
+  routesEl.innerHTML = '';
+  collectIntersects();
+  traverseTrails([], buildWalkedList(Trails), intersect);
+  if (allPossibleRoutes.length !== 0) {
+    const shortestRoutes = whichRoutesAreShortest(allPossibleRoutes);
+    const filtered = filterIdenticalRoutes(shortestRoutes);
+    routesToDom(filtered);
+  } else {
+    routesEl.innerHTML = `<h1>No Possible Routes Found</h1>`;
+  }
+  let endTime = new Date();
+  let timeDiff = endTime - startTime;
+  console.log(`time to beat: ${timeDiff}`);
 }
 
 // Initialize the program and fetch the js
@@ -475,37 +500,34 @@ function backtrackCheck(curTrail, walkedTrails) {
 let traverseCount = 0;
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
-  // if (traverseCount > 74) {
-  //   debugger;
-  // }
   const newRoute = route;
   console.log(traverseCount++);
   // Stop recursive function if all trails have been walked
   if (trailsWalked(walkedTrails)) {
-    console.log(`found a route: ${newRoute}`);
+    console.log(`Found a route!`);
     return allPossibleRoutes.push([...newRoute]);
   } else {
-    //loop through every trail at current intersection
-    let futureTrails = TrailIntersects[intersection];
-    futureTrails.forEach((newTrail) => {
-      // Stop infinite loop. Cannot walk same trail more than twice
-      if (backtrackCheck(newTrail, walkedTrails)) {
-        // add trail to newRoute
-        let trailObj = Trails.find((trail) => trail.id === newTrail);
-        let trailName = trailObj.title;
-        newRoute.push(newTrail);
-        // Grab the intersection on the other end of the trail
-        let newIntersect = findNextIntersection(intersection, newTrail);
-        // Mark the trail as walked
-        let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
-        // Call the recursive function
-        console.log(trailName + ' ' + newIntersect);
-        traverseTrails(newRoute, newWalkedTrails, newIntersect);
-        // Undo stuff so the for loop will work on next iteration
-        removeWalkedTrail(newTrail, walkedTrails);
-        newRoute.pop();
-      }
-    });
+    //Check if the route is longer than we care about.
+    if (route.length < 1.1 * Trails.length) {
+      //loop through every trail at current intersection
+      let futureTrails = TrailIntersects[intersection];
+      futureTrails.forEach((newTrail) => {
+        // Stop infinite loop. Cannot walk same trail more than twice
+        if (backtrackCheck(newTrail, walkedTrails)) {
+          // add trail to newRoute
+          newRoute.push(newTrail);
+          // Grab the intersection on the other end of the trail
+          let newIntersect = findNextIntersection(intersection, newTrail);
+          // Mark the trail as walked
+          let newWalkedTrails = addWalkedTrail(newTrail, walkedTrails);
+          // Call the recursive function
+          traverseTrails(newRoute, newWalkedTrails, newIntersect);
+          // Undo stuff so the for loop will work on next iteration
+          removeWalkedTrail(newTrail, walkedTrails);
+          newRoute.pop();
+        }
+      });
+    }
   }
 }
 
@@ -708,6 +730,10 @@ btnDeleteAll.addEventListener('click', clearTrails);
 btnIntersects.addEventListener('click', saveIntersects);
 form.addEventListener('submit', upload);
 btnCalculateShortest.addEventListener('click', calculateShortestRoute);
+btnShortestIntersection.addEventListener(
+  'click',
+  calculateShortestRouteFromStart
+);
 
 // Test functions and Sample Data
 // Fill in the intersections

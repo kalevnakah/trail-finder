@@ -454,7 +454,7 @@ function buildWalkedList(trails) {
 // Get possible routes from different starting points
 function startEveryWhere() {
   for (let intersect in TrailIntersects) {
-    console.log(`starting intersection: ${intersect}`);
+    //console.log(`starting intersection: ${intersect}`);
     if (TrailIntersects.hasOwnProperty(intersect)) {
       traverseTrails([], buildWalkedList(Trails), intersect);
     }
@@ -501,19 +501,20 @@ let traverseCount = 0;
 // Using recursion to find all trail routes
 function traverseTrails(route, walkedTrails, intersection) {
   const newRoute = route;
-  console.log(traverseCount++);
+  //console.log(traverseCount++);
   // Stop recursive function if all trails have been walked
   if (trailsWalked(walkedTrails)) {
-    console.log(`Found a route!`);
+    //console.log(`Found a route!`);
     return allPossibleRoutes.push([...newRoute]);
   } else {
     //Check if the route is longer than we care about.
-    if (route.length < 1.1 * Trails.length) {
+    if (route.length < 1.5 * Trails.length) {
       //loop through every trail at current intersection
       let futureTrails = TrailIntersects[intersection];
       futureTrails.forEach((newTrail) => {
         // Stop infinite loop. Cannot walk same trail more than twice
         if (backtrackCheck(newTrail, walkedTrails)) {
+          console.log('success');
           // add trail to newRoute
           newRoute.push(newTrail);
           // Grab the intersection on the other end of the trail

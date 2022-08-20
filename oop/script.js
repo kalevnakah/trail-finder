@@ -376,7 +376,7 @@ class Upload {
   // Get demo files and display them
   async fetchDemo(num) {
     for (let i = 0; i < num.length; i++) {
-      const file = `../trails/${i}.json`;
+      const file = `../trails/${i}.geojson`;
       const res = await fetch(file);
       const data = await res.json();
       const trail = new Trail(data.features[0].properties);
@@ -592,8 +592,8 @@ class CalculateShortestRoute {
   }
 
   traverseTrails(route, walkedTrails, intersection) {
-    console.log(this.counter++);
-    route.intersections.push(intersection);
+    //console.log(this.counter++);
+    //route.intersections.push(intersection);
     // Stop recursive function if all trails have been walked
     if (this.trailsWalked(walkedTrails)) {
       const finaleRoute = new Routes(
@@ -605,29 +605,38 @@ class CalculateShortestRoute {
       this.allPossibleRoutes.push(finaleRoute);
     } else {
       //loop through every trail at current intersection
-      if (route.trails.length < 1.2 * this.trails.length) {
+      if (route.trails.length < 1.5 * this.trails.length) {
         let futureTrails = this.intersectionIndex[intersection];
         futureTrails.forEach((newTrail) => {
           // Stop infinite loop. Cannot walk same trail more than twice.
           if (walkedTrails[newTrail.id].walked < 2) {
             // Find the other end of the trail.
+            // console.log(newTrail.id);
+            // console.log(route.trails.length);
+            //console.log(route.trails[route.trails.length - 3].id);
             if (
-              newTrail.end === intersection &&
-              newTrail.start !== newTrail.end
+              route.trails.length < 3 ||
+              newTrail.id !== route.trails[route.trails.length - 3].id
             ) {
-              newTrail.end = newTrail.start;
-              newTrail.start = intersection;
+              console.log('success');
+              if (
+                newTrail.end === intersection &&
+                newTrail.start !== newTrail.end
+              ) {
+                newTrail.end = newTrail.start;
+                newTrail.start = intersection;
+              }
+              // add trail to route
+              route.trails.push(newTrail);
+              // Mark the trail as walked
+              walkedTrails[newTrail.id].walked += 1;
+              // Call the recursive function
+              this.traverseTrails(route, walkedTrails, newTrail.end);
+              // Undo stuff so the for loop will work on next iteration
+              walkedTrails[newTrail.id].walked -= 1;
+              route.trails.pop();
+              route.intersections.pop();
             }
-            // add trail to route
-            route.trails.push(newTrail);
-            // Mark the trail as walked
-            walkedTrails[newTrail.id].walked += 1;
-            // Call the recursive function
-            this.traverseTrails(route, walkedTrails, newTrail.end);
-            // Undo stuff so the for loop will work on next iteration
-            walkedTrails[newTrail.id].walked -= 1;
-            route.trails.pop();
-            route.intersections.pop();
           }
         });
       }
@@ -638,6 +647,7 @@ class CalculateShortestRoute {
     this.allPossibleRoutes = [];
     for (let intersect in this.intersectionIndex) {
       if (this.intersectionIndex.hasOwnProperty(intersect)) {
+        //console.log(intersect);
         let walked = RouteUtilities.buildWalkedList(this.trails);
         let routes = new Routes();
         this.traverseTrails(routes, walked, intersect);
@@ -698,6 +708,56 @@ class Demo {
     missingData: ['1', '2', '', '3', '3', '1'],
     incomplete: ['1', '2', '3', '4', '5', '1'],
     stickFigure: ['1', '1', '1', '2', '1', '3', '1', '4', '4', '5', '4', '6'],
+    camden: [
+      '1Q',
+      '1A',
+      '1A',
+      '1B',
+      '1A',
+      '1B',
+      '1B',
+      '1C',
+      '1C',
+      '1D',
+      '1D',
+      '1E',
+      '1E',
+      '1F',
+      '1F',
+      '1G',
+      '1F',
+      '1H',
+      '1H',
+      '1I',
+      '1I',
+      '1J',
+      '1J',
+      '1K',
+      '1K',
+      '1L',
+      '1L',
+      '1M',
+      '1L',
+      '1N',
+      '1N',
+      '2A',
+      '2A',
+      '2C',
+      '2C',
+      '2D',
+      '2D',
+      '2E',
+      '2E',
+      '1D',
+      '2F',
+      '2H',
+      '2D',
+      '2H',
+      '2D',
+      '2I',
+      '2H',
+      '2I',
+    ],
   };
 
   static trails = [];
@@ -707,7 +767,7 @@ class Demo {
   static async fetchDemo() {
     let trailsLength = this.intersectionList.length / 2;
     for (let i = 1; i <= trailsLength; i++) {
-      const file = `../trails/${i}.json`;
+      const file = `../trails/${i}.geojson`;
       const res = await fetch(file);
       const data = await res.json();
       const trail = new Trail(data.features[0].properties);
@@ -788,7 +848,7 @@ document
 // Load Demo trails.
 // Params for "addDemoTrails": straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 document.getElementById('load-sample-btn').addEventListener('click', () => {
-  Demo.addDemoTrails('stickFigure');
+  Demo.addDemoTrails('camden');
 });
 //     straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 
@@ -805,5 +865,5 @@ document
   .getElementById('calculate-shortest-start-btn')
   .addEventListener('click', () => {
     const shortestRoutes = new CalculateShortestRoute();
-    shortestRoutes.start();
+    shortestRoutes.startFrom();
   });

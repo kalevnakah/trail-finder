@@ -592,8 +592,6 @@ class CalculateShortestRoute {
   }
 
   traverseTrails(route, walkedTrails, intersection) {
-    //console.log(this.counter++);
-    //route.intersections.push(intersection);
     // Stop recursive function if all trails have been walked
     if (this.trailsWalked(walkedTrails)) {
       const finaleRoute = new Routes(
@@ -605,20 +603,16 @@ class CalculateShortestRoute {
       this.allPossibleRoutes.push(finaleRoute);
     } else {
       //loop through every trail at current intersection
-      if (route.trails.length < 1.5 * this.trails.length) {
+      if (route.trails.length < 1.2 * this.trails.length) {
         let futureTrails = this.intersectionIndex[intersection];
         futureTrails.forEach((newTrail) => {
           // Stop infinite loop. Cannot walk same trail more than twice.
           if (walkedTrails[newTrail.id].walked < 2) {
             // Find the other end of the trail.
-            // console.log(newTrail.id);
-            // console.log(route.trails.length);
-            //console.log(route.trails[route.trails.length - 3].id);
             if (
               route.trails.length < 3 ||
               newTrail.id !== route.trails[route.trails.length - 3].id
             ) {
-              console.log('success');
               if (
                 newTrail.end === intersection &&
                 newTrail.start !== newTrail.end
@@ -647,7 +641,6 @@ class CalculateShortestRoute {
     this.allPossibleRoutes = [];
     for (let intersect in this.intersectionIndex) {
       if (this.intersectionIndex.hasOwnProperty(intersect)) {
-        //console.log(intersect);
         let walked = RouteUtilities.buildWalkedList(this.trails);
         let routes = new Routes();
         this.traverseTrails(routes, walked, intersect);
@@ -657,7 +650,6 @@ class CalculateShortestRoute {
 
   start() {
     this.counter = 0;
-    let startTime = new Date();
     this.trails = Store.getTrails();
     this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
     this.startEveryWhere();
@@ -667,15 +659,10 @@ class CalculateShortestRoute {
     this.shortestRoutes.forEach((route, index) => {
       route.addRouteToDom(index);
     });
-    //UI.createRoutes(this.shortestRoutes);
-    let endTime = new Date();
-    let timeDiff = endTime - startTime;
-    console.log(timeDiff);
   }
 
   startFrom() {
     this.counter = 0;
-    let startTime = new Date();
     this.trails = Store.getTrails();
     this.intersectionIndex = RouteUtilities.buildIntersectionList(this.trails);
     let walked = RouteUtilities.buildWalkedList(this.trails);
@@ -688,10 +675,6 @@ class CalculateShortestRoute {
     this.shortestRoutes.forEach((route, index) => {
       route.addRouteToDom(index);
     });
-    //UI.createRoutes(this.shortestRoutes);
-    let endTime = new Date();
-    let timeDiff = endTime - startTime;
-    console.log(timeDiff);
   }
 }
 

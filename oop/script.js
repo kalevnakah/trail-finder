@@ -250,10 +250,12 @@ class UI {
       <td><p>${UI.distanceFormat(trail.distance)}</p></td>
       <td><p>${UI.timeFormat(trail.time)}</p></td>
       <td><p>${UI.speedFormat(trail.speed)}</p></td>
-      <td><input data-id=${trail.id} class="intersect start" value=${
+      <td><input data-id=${
+        trail.id
+      } class="form-control-lg text-center start" value=${
         trail.start
       }></input></td>
-      <td><input data-id=${trail.id} class="intersect end" value="${
+      <td><input data-id=${trail.id} class="form-control-lg end" value="${
         trail.end
       }"></input></td>
     `;
@@ -269,7 +271,7 @@ class UI {
 
   static createTable() {
     let table = document.createElement('table');
-    table.classList.add('box');
+    table.classList.add('table', 'box');
     return table;
   }
 
@@ -289,7 +291,7 @@ class UI {
 
   static createBody() {
     let body = document.createElement('tbody');
-    body.classList.add('trails', 'trail-rows');
+    body.classList.add('trails');
     return body;
   }
 

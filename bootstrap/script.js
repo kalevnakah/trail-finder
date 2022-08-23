@@ -128,6 +128,7 @@ class Routes extends Trails {
     const routeDiv = document.querySelector('#routes');
     let newHeader = document.createElement('h2');
     newHeader.innerHTML = `Route ${routeNumber}`;
+    newHeader.classList.add('text-center', 'text-light');
     routeDiv.appendChild(newHeader);
     routeDiv.appendChild(this.addTrailsToDom(true));
     routeDiv.appendChild(this.addCSVBtn(`Save Route ${routeNumber} To CSV`));
@@ -190,6 +191,10 @@ class Store {
       }
     });
     localStorage.setItem('trails', JSON.stringify(updateTrails.trails));
+    let toastOpt = { animation: true, delay: 5000 };
+    let toast = document.getElementById('save-toast');
+    let toastEl = new bootstrap.Toast(toast, toastOpt);
+    toastEl.show();
   }
 }
 
@@ -230,14 +235,13 @@ class UI {
 
   static createATrail(trail, isARoute = false) {
     const newTrail = document.createElement('tr');
-    newTrail.classList.add('trail-rows', 'trail');
     newTrail.id = trail.id;
     newTrail.style.background = trail.color;
     newTrail.style.color =
       UI.luma(trail.color.substring(1)) >= 165 ? '#000' : '#fff';
     if (isARoute) {
       newTrail.innerHTML = `
-      <td class="trail-title"><p>${trail.title}</p></td>
+      <td><p class="text-nowrap">${trail.title}</p></td>
       <td><p>${UI.distanceFormat(trail.distance)}</p></td>
       <td><p>${UI.timeFormat(trail.time)}</p></td>
       <td><p>${UI.speedFormat(trail.speed)}</p></td>
@@ -246,14 +250,20 @@ class UI {
     `;
     } else {
       newTrail.innerHTML = `
-      <td class="trail-title"><a class='delete'>X</a><p>${trail.title}</p></td>
+      <td class="position-relative ps-5"><button type="button" class="btn-close position-absolute top-50 start-0 translate-middle-y ms-1 delete" aria-label="Close"  tabindex="-1"></button><p class="text-nowrap">${
+        trail.title
+      }</p></td>
       <td><p>${UI.distanceFormat(trail.distance)}</p></td>
       <td><p>${UI.timeFormat(trail.time)}</p></td>
       <td><p>${UI.speedFormat(trail.speed)}</p></td>
-      <td><input data-id=${trail.id} class="intersect start" value=${
+      <td class="bg-white p-0"><input data-id=${
+        trail.id
+      } class="form-control border-0 p-1 mw-100 m-auto text-center fs-4 intersect start intersect" value=${
         trail.start
       }></input></td>
-      <td><input data-id=${trail.id} class="intersect end" value="${
+      <td class="bg-white p-0"><input data-id=${
+        trail.id
+      } class="form-control border-0 p-1 mw-100 m-auto text-center fs-4 intersect end intersect" value="${
         trail.end
       }"></input></td>
     `;
@@ -272,15 +282,16 @@ class UI {
     table.classList.add(
       'table',
       'table-bordered',
-      'border-primary',
-      'align-middle'
+      'border-dark',
+      'align-middle',
+      'text-center'
     );
     return table;
   }
 
   static createHeader() {
     let head = document.createElement('thead');
-    head.classList.add('trails-list-head', 'trail-rows');
+    head.classList.add('table-primary', 'border-dark');
     head.innerHTML = `
       <th><p></p>Name</p></th>
       <th><p>Distance (Meters)</p></th>
@@ -294,7 +305,7 @@ class UI {
 
   static createBody() {
     let body = document.createElement('tbody');
-    body.classList.add('trails', 'trail-rows');
+    body.classList.add('trails');
     return body;
   }
 
@@ -302,7 +313,7 @@ class UI {
     trailList = { trails: [], distance: 0, time: 0, speed: 0 }
   ) {
     let foot = document.createElement('tfoot');
-    foot.classList.add('trail-total', 'trail-rows');
+    foot.classList.add('h5', 'bg-light');
     foot.innerHTML = `
       <td><p>Total: Number of Trails ${trailList.trails.length}</p></td>
       <td><p>${this.distanceFormat(trailList.distance)}</p></td>
@@ -333,12 +344,17 @@ class UI {
 
   static csvExportBtn(title, routeExport) {
     const newDownloadBtn = document.createElement('button');
-    newDownloadBtn.classList.add('csv');
+    newDownloadBtn.classList.add('btn', 'btn-success', 'csv');
     newDownloadBtn.innerHTML = title;
     newDownloadBtn.onclick = function () {
       RouteUtilities.exportToCsv(title, routeExport);
     };
     return newDownloadBtn;
+  }
+
+  static routeSpinner(state) {
+    const spinner = document.getElementById('route-spinner');
+    spinner.style.display = state;
   }
 }
 
@@ -844,8 +860,20 @@ document.getElementById('load-sample-btn').addEventListener('click', () => {
 document
   .getElementById('calculate-shortest-btn')
   .addEventListener('click', () => {
-    const shortestRoutes = new CalculateShortestRoute();
-    shortestRoutes.start();
+    //UI.routeSpinner('.flex');
+    document.getElementById('route-spinner').classList.remove('d-none');
+    document.getElementById('route-spinner').classList.add('d-flex');
+    requestAnimationFrame(() => {
+      // fires before next repaint
+      requestAnimationFrame(() => {
+        // fires before the _next_ next repaint
+        // ...which is effectively _after_ the next repaint
+        const shortestRoutes = new CalculateShortestRoute();
+        shortestRoutes.start();
+        document.getElementById('route-spinner').classList.remove('d-flex');
+        document.getElementById('route-spinner').classList.add('d-none');
+      });
+    });
   });
 
 // Calculate the shortest route starting from a given point

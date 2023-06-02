@@ -527,7 +527,6 @@ class CalculateShortestRoute {
     this.allPossibleRoutes = [];
     this.shortestRoutes = [];
     this.trails = [];
-    this.counter = 0;
   }
 
   filterIdenticalRoutes(arrRoutes) {
@@ -624,7 +623,7 @@ class CalculateShortestRoute {
       this.allPossibleRoutes.push(finaleRoute);
     } else {
       //loop through every trail at current intersection
-      if (route.trails.length < 1.2 * this.trails.length) {
+      if (route.trails.length < 1.5 * this.trails.length) {
         let futureTrails = this.intersectionIndex[intersection];
         futureTrails.forEach((newTrail) => {
           // Stop infinite loop. Cannot walk same trail more than twice.
@@ -761,6 +760,254 @@ class Demo {
       '2I',
       '2H',
       '2I',
+      '1I',
+      '3H',
+      '3H',
+      '3G',
+      '3G',
+      '3F',
+      '5F',
+      '5D',
+      '5D',
+      '5E',
+      '3E',
+      '3D',
+      '3C',
+      '3D',
+      '3D',
+      '3B',
+      '3B',
+      '3A',
+      '3D',
+      '3A',
+      '3A',
+      '1O',
+      '1O',
+      '1N',
+      '1O',
+      '1P',
+      '1P',
+      '5A',
+      '1N',
+      '2B',
+      '2B',
+      '1Q',
+      '2A',
+      '2B',
+      '1P',
+      '1Q',
+      '1J',
+      '1K',
+      '5B',
+      '5C',
+      '5C',
+      '5D',
+      '5C',
+      '5R',
+      '5R',
+      '5Q',
+      '5O',
+      '5N',
+      '5O',
+      '5P',
+      '5O',
+      '5Q',
+      '1A',
+      '4A',
+      '4A',
+      '4B',
+      '4B',
+      '4A',
+      '4C',
+      '4B',
+      '5P',
+      '5N',
+      '5P',
+      '5Q',
+      '5M',
+      '5N',
+      '5M',
+      '6A',
+      '5M',
+      '5L',
+      '5L',
+      '6A',
+      '5L',
+      '5K',
+      '5K',
+      '5I',
+      '5K',
+      '5J',
+      '5J',
+      '5I',
+      '5I',
+      '5H',
+      '5H',
+      '5Ha',
+      '5G',
+      '3G',
+      '5H',
+      '5G',
+      '5J',
+      '7A',
+      '7A',
+      '7B',
+      '7A',
+      '6B',
+      '6B',
+      '6C',
+      '6C',
+      '6D',
+      '6D',
+      '6E',
+      '6F',
+      '6E',
+      '6E',
+      '6G',
+      '6G',
+      '6D',
+      '6G',
+      '6C',
+      '6B',
+      '6A',
+      '5P',
+      '9A',
+      '11A',
+      '11B',
+      '11A',
+      '9A',
+      '9A',
+      '7F',
+      '7F',
+      '8A',
+      '8H',
+      '8B',
+      '8B',
+      '8C',
+      '8D',
+      '8C',
+      '8C',
+      '8E',
+      '8E',
+      '8F',
+      '8F',
+      '8G',
+      '8H',
+      '8A',
+      '8F',
+      '8H',
+      '7F',
+      '7E',
+      '7D',
+      '7Da',
+      '7Da',
+      '7E',
+      '7C',
+      '7D',
+      '7B',
+      '7C',
+      '7F',
+      '9B',
+      '7E',
+      '10A',
+      '10A',
+      '10B',
+      '10B',
+      '10E',
+      '10E',
+      '10F',
+      '10F',
+      '9B',
+      '9B',
+      '9C',
+      '10F',
+      '9C',
+      '9C',
+      '9D',
+      '9E',
+      '9F',
+      '9Fa',
+      '9F',
+      '9F',
+      '9G',
+      '9Ga',
+      '9G',
+      '9G',
+      '9H',
+      '9I',
+      '9Ia',
+      '9I',
+      '9H',
+      '9H',
+      '9E',
+      '11G',
+      '9B',
+      '9D',
+      '9E',
+      '11G',
+      '11C',
+      '11C',
+      '11D',
+      '11C',
+      '11D',
+      '11D',
+      '11F',
+      '11D',
+      '11E',
+      '11F',
+      '11E',
+      '9A',
+      '11G',
+      '4C',
+      '5B',
+      '4C',
+      '5R',
+      '5A',
+      '1A',
+      '1C',
+      '2I',
+      '2G',
+      '1D',
+      '2I',
+      '2G',
+      '2F',
+      '2G',
+      '7E',
+      '10A',
+      '10B',
+      '10C',
+      '10C',
+      '10D',
+      '10C',
+      '10D',
+      '10D',
+      '10E',
+      '2E',
+      '2F',
+      '1E',
+      '1H',
+      '3H',
+      '5G',
+      '3F',
+      '5F',
+      '3F',
+      '3E',
+      '3E',
+      '5F',
+      '6E',
+      '8E',
+      '11A',
+      '11C',
+      '8A',
+      '8B',
+      '7C',
+      '7D',
+      '5A',
+      '5B',
+      '2J',
+      '2D',
+      '3J',
+      '1C',
     ],
   };
 
@@ -860,9 +1107,9 @@ document.getElementById('load-sample-btn').addEventListener('click', () => {
 document
   .getElementById('calculate-shortest-btn')
   .addEventListener('click', () => {
-    //UI.routeSpinner('.flex');
-    document.getElementById('route-spinner').classList.remove('d-none');
-    document.getElementById('route-spinner').classList.add('d-flex');
+    let spinner = document.getElementById('route-spinner');
+    spinner.classList.remove('d-none');
+    spinner.classList.add('d-flex');
     requestAnimationFrame(() => {
       // fires before next repaint
       requestAnimationFrame(() => {
@@ -870,8 +1117,8 @@ document
         // ...which is effectively _after_ the next repaint
         const shortestRoutes = new CalculateShortestRoute();
         shortestRoutes.start();
-        document.getElementById('route-spinner').classList.remove('d-flex');
-        document.getElementById('route-spinner').classList.add('d-none');
+        spinner.classList.remove('d-flex');
+        spinner.classList.add('d-none');
       });
     });
   });
@@ -880,6 +1127,18 @@ document
 document
   .getElementById('calculate-shortest-start-btn')
   .addEventListener('click', () => {
-    const shortestRoutes = new CalculateShortestRoute();
-    shortestRoutes.startFrom();
+    let spinner = document.getElementById('route-spinner');
+    spinner.classList.remove('d-none');
+    spinner.classList.add('d-flex');
+    requestAnimationFrame(() => {
+      // fires before next repaint
+      requestAnimationFrame(() => {
+        // fires before the _next_ next repaint
+        // ...which is effectively _after_ the next repaint
+        const shortestRoutes = new CalculateShortestRoute();
+        shortestRoutes.startFrom();
+        spinner.classList.remove('d-flex');
+        spinner.classList.add('d-none');
+      });
+    });
   });

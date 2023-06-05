@@ -19,10 +19,56 @@
       background-image: url('trail.jpg');
       height: 100vh;
       background-repeat: no-repeat;
-      background-size: contain;
+      background-size: cover;
     "
   >
     <h1 class="text-center py-3">Find Optimal Trail Route</h1>
+      <!-- Button trigger modal -->
+      <div class="mx-auto p-2" style="width: 200px;">
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+          Instructions
+        </button>
+      </div>
+
+
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Instructions</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <ol class="list-group list-group-numbered">
+                <li class="list-group-item">
+                  Upload ".geojson" files from Gaia GPS tracks that you recorded or
+                  click "Load Samples" button to try it out.
+                </li>
+                <li class="list-group-item">
+                  Give each trail a a starting and ending ID. Each trail should have at
+                  least one point that matches another trail. If any the trails is
+                  disconnected from the the rest of the trails, the program will not be
+                  able to find a route.
+                </li>
+                <li class="list-group-item">
+                  Click the "Find all Routes" button. Alternatively you can enter starting point and click "Find A Route".
+                </li>
+                <li class="list-group-item">
+                  Once you have your route you can export it to a csv for safe keeping or to print it.</li>
+                <li class="list-group-item">
+                Check out the GitHub Repo and ReadMe for more information. <a href="https://github.com/kalevnakah/trail-finder">github.com/kalevnakah/trail-finder</a></li>
+              </ol>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
     <div class="d-flex justify-content-between m-3">
       <div>
         <form method="post" enctype="multipart/form-data">

@@ -1099,7 +1099,7 @@ document
 // Load Demo trails.
 // Params for "addDemoTrails": straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 document.getElementById('load-sample-btn').addEventListener('click', () => {
-  Demo.addDemoTrails('camden');
+  Demo.addDemoTrails('stickFigure');
 });
 //     straightLoop triangle parallel parallelWithLoop twoTrailsParallel twoLoops oneTrail missingData incomplete stickFigure
 

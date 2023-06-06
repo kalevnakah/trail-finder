@@ -397,7 +397,7 @@ class Upload {
   // Get demo files and display them
   async fetchDemo(num) {
     for (let i = 0; i < num.length; i++) {
-      const file = `../trails/${i}.geojson`;
+      const file = `./trails/${i}.geojson`;
       const res = await fetch(file);
       const data = await res.json();
       const trail = new Trail(data.features[0].properties);

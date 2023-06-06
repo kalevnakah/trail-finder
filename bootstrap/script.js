@@ -376,7 +376,7 @@ class Upload {
 
   // Save json or geojson files as json files to server.
   async #fetchData() {
-    await fetch('../upload.php', {
+    await fetch('./upload.php', {
       method: 'POST',
       body: this.#formData,
     });

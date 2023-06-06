@@ -5,7 +5,7 @@ print_r($_FILES);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_FILES['files'])) {
     $errors = [];
-    $path = 'trails/';
+    $path = './trails/';
     $extensions = ['json','geojson'];
 
     $all_files = count($_FILES['files']['tmp_name']);

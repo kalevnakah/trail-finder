@@ -386,7 +386,7 @@ class Upload {
   async #fetchTrails() {
     for (let i = 0; i < this.#fileList.length; i++) {
       const splitFile = this.#fileList[i].split('.');
-      const file = `../trails/${splitFile[0]}.json`;
+      const file = `./trails/${splitFile[0]}.json`;
       const res = await fetch(file);
       const data = await res.json();
       const trail = new Trail(data.features[0].properties);
@@ -409,7 +409,7 @@ class Upload {
 
   // Delete the files from the server
   async #deleteFiles() {
-    await fetch('../delete.php', {
+    await fetch('./delete.php', {
       method: 'POST',
       body: this.#formData,
     });
@@ -1018,7 +1018,7 @@ class Demo {
   static async fetchDemo() {
     let trailsLength = this.intersectionList.length / 2;
     for (let i = 1; i <= trailsLength; i++) {
-      const file = `../trails/${i}.geojson`;
+      const file = `./trails/${i}.geojson`;
       const res = await fetch(file);
       const data = await res.json();
       const trail = new Trail(data.features[0].properties);
